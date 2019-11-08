@@ -16,7 +16,7 @@ The score that is played contains two parts.
 With the DevKit only one part is played.
 ***************************************************************/
 
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 #include <ArduboyPlaytune.h>
 
 // 2 Part Inventions No. 3 - J.S. Bach

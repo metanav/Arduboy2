@@ -11,7 +11,7 @@
  version 2.1 of the License, or (at your option) any later version.
  */
 
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 
 // block in EEPROM to save high scores
 #define EE_FILE 2
@@ -99,10 +99,22 @@ void loop()
 
   if (lives>0)
   {
+    switch (lives)
+    {
+    case 3:
+      arduboy.digitalWriteRGB(RGB_OFF, RGB_ON, RGB_OFF);  // green
+      break;
+    case 2:
+      arduboy.digitalWriteRGB(RGB_ON, RGB_ON, RGB_OFF);  // yellow
+      break;
+    case 1:
+      arduboy.digitalWriteRGB(RGB_ON, RGB_OFF, RGB_OFF);  // red
+      break;
+    }
     drawPaddle();
 
-    //Pause game if FIRE pressed
-    pad = arduboy.pressed(A_BUTTON) || arduboy.pressed(B_BUTTON);
+    //Pause game if START pressed
+    pad = arduboy.pressed(START_BUTTON);
 
     if(pad == true && oldpad == false && released)
     {
@@ -343,6 +355,7 @@ void drawPaddle()
 
 void drawGameOver()
 {
+  arduboy.setRGBled(RGB_OFF, RGB_OFF, RGB_OFF);
   arduboy.drawPixel(xb,   yb,   0);
   arduboy.drawPixel(xb+1, yb,   0);
   arduboy.drawPixel(xb,   yb+1, 0);
@@ -363,11 +376,13 @@ void pause()
   arduboy.setCursor(52, 45);
   arduboy.print("PAUSE");
   arduboy.display();
+  arduboy.invert(true);
+  beep.noTone();
   while (paused)
   {
     arduboy.delayShort(150);
-    //Unpause if FIRE is pressed
-    pad2 = arduboy.pressed(A_BUTTON) || arduboy.pressed(B_BUTTON);
+    //Unpause if START is pressed
+    pad2 = arduboy.pressed(START_BUTTON);
     if (pad2 == true && oldpad2 == false && released)
     {
         arduboy.fillRect(52, 45, 30, 11, 0);
@@ -376,6 +391,7 @@ void pause()
     }
     oldpad2 = pad2;
   }
+  arduboy.invert(false);
 }
 
 void Score()
@@ -418,6 +434,23 @@ boolean pollFireButton(int n)
   {
     arduboy.delayShort(15);
     pad = arduboy.pressed(A_BUTTON) || arduboy.pressed(B_BUTTON);
+    if(pad == true && oldpad == false)
+    {
+      oldpad3 = true; //Forces pad loop 3 to run once
+      return true;
+    }
+    oldpad = pad;
+  }
+  return false;
+}
+
+//Used to delay images while reading button input
+boolean pollStartButton(int n)
+{
+  for(int i = 0; i < n; i++)
+  {
+    arduboy.delayShort(15);
+    pad = arduboy.pressed(START_BUTTON);
     if(pad == true && oldpad == false)
     {
       oldpad3 = true; //Forces pad loop 3 to run once
@@ -472,7 +505,7 @@ boolean displayHighScores(byte file)
       arduboy.display();
     }
   }
-  if (pollFireButton(300))
+  if (pollStartButton(300))
   {
     return true;
   }
@@ -489,7 +522,7 @@ boolean titleScreen()
   arduboy.print("BREAKOUT");
   arduboy.setTextSize(1);
   arduboy.display();
-  if (pollFireButton(25))
+  if (pollStartButton(25))
   {
     return true;
   }
@@ -497,22 +530,22 @@ boolean titleScreen()
   //Flash "Press FIRE" 5 times
   for(byte i = 0; i < 5; i++)
   {
-    //Draws "Press FIRE"
+    //Draws "PRESS START"
     arduboy.setCursor(31, 53);
-    arduboy.print("PRESS FIRE!");
+    arduboy.print("PRESS START!");
     arduboy.display();
 
-    if (pollFireButton(50))
+    if (pollStartButton(50))
     {
       return true;
     }
 
-    //Removes "Press FIRE"
+    //Removes "PRESS START"
     arduboy.setCursor(31, 53);
-    arduboy.print("           ");
+    arduboy.print("            ");
     arduboy.display();
 
-    if (pollFireButton(25))
+    if (pollStartButton(25))
     {
       return true;
     }

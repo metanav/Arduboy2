@@ -1,16 +1,16 @@
 /**
- * @file Arduboy2.h
+ * @file Arduboy2DotMG.h
  * \brief
  * The Arduboy2Base and Arduboy2 classes and support objects and definitions.
  */
 
-#ifndef ARDUBOY2_H
-#define ARDUBOY2_H
+#ifndef ARDUBOY2_DOTMG_H
+#define ARDUBOY2_DOTMG_H
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include "Arduboy2Core.h"
-#include "Arduboy2Beep.h"
+#include "Arduboy2CoreDotMG.h"
+#include "Arduboy2BeepDotMG.h"
 #include "Sprites.h"
 #include "SpritesB.h"
 #include <Print.h>
@@ -33,7 +33,7 @@
  * #endif
  * \endcode
  */
-#define ARDUBOY_LIB_VER 50201
+#define ARDUBOY_LIB_VER 00001
 
 // EEPROM settings
 #define ARDUBOY_UNIT_NAME_LEN 6 /**< The maximum length of the unit name string. */
@@ -65,7 +65,7 @@
 #define EEPROM_STORAGE_SPACE_START 16
 
 // eeprom settings above are neded for audio
-#include "Arduboy2Audio.h"
+#include "Arduboy2AudioDotMG.h"
 
 // If defined, it is safe to draw outside of the screen boundaries.
 // Pixels that would exceed the display limits will be ignored.
@@ -74,6 +74,7 @@
 // pixel colors
 #define BLACK 0  /**< Color value for an unlit pixel for draw functions. */
 #define WHITE 1  /**< Color value for a lit pixel for draw functions. */
+
 /** \brief
  * Color value to indicate pixels are to be inverted.
  *
@@ -178,7 +179,7 @@ struct Point
  * Example:
  *
  * \code{.cpp}
- * #include <Arduboy2.h>
+ * #include <Arduboy2DotMG.h>
  *
  * Arduboy2 arduboy;
  *
@@ -248,15 +249,14 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \note
    * \parblock
-   * This function also contains code to address a problem with uploading a new
-   * sketch, for sketches that interfere with the bootloader "magic number".
-   * This problem occurs with certain sketches that use large amounts of RAM.
-   * Being in flashlight mode when uploading a new sketch can fix this problem.
+   * This function also originally contained code to address a problem with
+   * uploading new sketches. However, this is not as necessary for the dotMG,
+   * as the dotMG is ATmega328P-based.
    *
-   * Therefore, for sketches that potentially could cause this problem, and use
-   * `boot()` instead of `begin()`, it is recommended that a call to
-   * `flashlight()` be included after calling `boot()`. If program space is
-   * limited, `safeMode()` can be used instead of `flashlight()`.
+   * For sketches that use `boot()` instead of `begin()`, it is recommended
+   * that a call to `flashlight()` be included after calling `boot()`. If
+   * program space is limited, `safeMode()` can be used instead of
+   * `flashlight()`.
    * \endparblock
    *
    * \see begin() boot() safeMode()

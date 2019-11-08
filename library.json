@@ -1,13 +1,13 @@
 {
-    "name": "Arduboy2",
+    "name": "Arduboy2DotMG",
     "keywords": "arduboy, game",
-    "description": "An alternative library for content creation on the Arduboy miniature gaming platform",
+    "description": "An alternative library for content creation on the Modmatic dotMG handheld gaming platform",
     "repository":
     {
         "type": "git",
-        "url": "https://github.com/MLXXXp/Arduboy2.git"
+        "url": "https://github.com/modmatic/Arduboy2DotMG.git"
     },
-    "version": "5.2.1",
+    "version": "0.0.1",
     "export":
     {
         "exclude": "extras"

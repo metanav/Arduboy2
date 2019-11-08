@@ -4,20 +4,15 @@
  * The Arduboy2Audio class for speaker and sound control.
  */
 
-#include "Arduboy2.h"
-#include "Arduboy2Audio.h"
+#include "Arduboy2DotMG.h"
+#include "Arduboy2AudioDotMG.h"
 
 bool Arduboy2Audio::audio_enabled = false;
 
 void Arduboy2Audio::on()
 {
   // fire up audio pins by seting them as outputs
-#ifdef ARDUBOY_10
-  bitSet(SPEAKER_1_DDR, SPEAKER_1_BIT);
-  bitSet(SPEAKER_2_DDR, SPEAKER_2_BIT);
-#else
-  bitSet(SPEAKER_1_DDR, SPEAKER_1_BIT);
-#endif
+  bitSet(DDR_CS_SPK_SEL_ST, BIT_SPEAKER);
   audio_enabled = true;
 }
 
@@ -25,12 +20,7 @@ void Arduboy2Audio::off()
 {
   audio_enabled = false;
   // shut off audio pins by setting them as inputs
-#ifdef ARDUBOY_10
-  bitClear(SPEAKER_1_DDR, SPEAKER_1_BIT);
-  bitClear(SPEAKER_2_DDR, SPEAKER_2_BIT);
-#else
-  bitClear(SPEAKER_1_DDR, SPEAKER_1_BIT);
-#endif
+  bitClear(DDR_CS_SPK_SEL_ST, BIT_SPEAKER);
 }
 
 void Arduboy2Audio::toggle()

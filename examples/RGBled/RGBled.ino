@@ -8,7 +8,7 @@ To the extent possible under law, Scott Allen has waived all copyright and
 related or neighboring rights to this BeepDemo program.
 */
 
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 
 // The frame rate determines the button auto-repeat rate
 #define FRAME_RATE 25
@@ -17,7 +17,7 @@ related or neighboring rights to this BeepDemo program.
 #define REPEAT_AMOUNT 3
 
 // Delay time before button auto-repeat starts, in milliseconds
-#define REPEAT_DELAY 700
+#define REPEAT_DELAY 250
 
 // Calculation of the number of frames to wait before button auto-repeat starts
 #define DELAY_FRAMES (REPEAT_DELAY / (1000 / FRAME_RATE))

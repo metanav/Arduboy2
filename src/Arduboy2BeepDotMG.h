@@ -1,11 +1,13 @@
+#include <Arduboy2CoreDotMG.h>
+
 /**
- * @file Arduboy2Beep.h
+ * @file Arduboy2BeepDotMG.h
  * \brief
  * Classes to generate simple square wave tones on the Arduboy speaker pins.
  */
 
-#ifndef ARDUBOY2_BEEP_H
-#define ARDUBOY2_BEEP_H
+#ifndef ARDUBOY2_BEEP_DOTMG_H
+#define ARDUBOY2_BEEP_DOTMG_H
 
 /** \brief
  * Play simple square wave tones using speaker pin 1.
@@ -79,9 +81,9 @@
  * a button is pressed.
  *
  * \code{.cpp}
- * #include <Arduboy2.h>
- * // There's no need to #include <Arduboy2Beep.h>
- * // It will be included in Arduboy2.h
+ * #include <Arduboy2DotMG.h>
+ * // There's no need to #include <Arduboy2BeepDotMG.h>
+ * // It will be included in Arduboy2DotMG.h
  *
  * Arduboy2 arduboy;
  * BeepPin1 beep; // class instance for speaker pin 1
@@ -310,7 +312,7 @@ class BeepPin2
    * \details
    * For details see `BeepPin1::tone(uint16_t)`.
    */
-  static void tone(uint16_t count);
+  static void tone(uint8_t count);
 
   /** \brief
    * Play a tone on speaker pin 2 for a given duration.
@@ -322,7 +324,7 @@ class BeepPin2
    * \details
    * For details see `BeepPin1::tone(uint16_t, uint8_t)`.
    */
-  static void tone(uint16_t count, uint8_t dur);
+  static void tone(uint8_t count, uint8_t dur);
 
   /** \brief
    * Handle the duration that a tone on speaker pin 2 plays for.
@@ -352,11 +354,10 @@ class BeepPin2
    * \details
    * For details see `BeepPin1::freq()`.
    */
-  static constexpr uint16_t freq(const float hz)
+  static constexpr uint8_t freq(const float hz)
   {
-    return (uint16_t) (((F_CPU / 128 / 2) + (hz / 2)) / hz) - 1;
+    return (uint8_t) (((F_CPU / 128 / 2) + (hz / 2)) / hz) - 1;
   }
 };
 
 #endif
-

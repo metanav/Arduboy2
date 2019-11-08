@@ -11,7 +11,7 @@ License as published by the Free Software Foundation; either
 version 2.1 of the License, or (at your option) any later version.
 */
 
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 
 // make an instance of arduboy used for many functions
 Arduboy2 arduboy;

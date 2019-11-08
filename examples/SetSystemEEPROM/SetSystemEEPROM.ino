@@ -65,7 +65,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------
 */
 
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 #include <EEPROM.h>
 
 // The frame rate determines the button auto-repeat rate for unit name entry

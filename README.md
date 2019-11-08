@@ -1,37 +1,28 @@
-# Arduboy2 Library
+# Arduboy2DotMG Library
 
-The Arduboy2 library is maintained in a git repository hosted on [GitHub](https://github.com/) at:
+The **Arduboy2DotMG** library is a fork of the [Arduboy2 library](https://github.com/MLXXXp/Arduboy2), with modifications made to allow compatibility with the Modmatic dotMG DIY handheld game console.
 
-https://github.com/MLXXXp/Arduboy2
+Notable differences between this library and the original Arduboy2 library:
 
-The **Arduboy2** library is a fork of the [Arduboy library](https://github.com/Arduboy/Arduboy), which provides a standard *application programming interface* (API) to the display, buttons and other hardware of the Arduino based [Arduboy miniature game system](https://www.arduboy.com/).
-
-The name *Arduboy2* doesn't indicate that it's for a new "next generation" of the Arduboy hardware. The name was changed so it can coexist in the Arduino IDE with the current *Arduboy* library, without conflict. This way, existing sketches can continue to use the *Arduboy* library and class, without changes, while new sketches can be written (or old ones modified) to use and take advantage of the capabilities of the *Arduboy2* class and library.
-
-For notes on the differences between the *Arduboy2* library and the original *Arduboy* library, and for information on migrating a sketch currently using the *Arduboy* library, see the sections at the end of this document.
+- (TBD)
 
 ## Library documentation
 
 Comments in the library header files are formatted for the [Doxygen](http://www.doxygen.org) document generation system. The HTML files generated using the configuration file _extras/Doxyfile_ can be found at:
 
-https://MLXXXp.github.io/documents/Arduino/libraries/Arduboy2/Doxygen/html/index.html
+(TBD)
 
 A generated PDF file can be found at:
 
-https://MLXXXp.github.io/documents/Arduino/libraries/Arduboy2/Doxygen/pdf/Arduboy2.pdf
+(TBD)
 
 ## Installation
 
-The Arduboy2 library can be installed using the Arduino IDE Library Manager:
+1. Download this repo as a ZIP file to a known location on your machine.
 
-- In the Arduino IDE select from the menus: `Sketch > Include Library > Manage Libraries...`
-- In the Library Manager *Filter your search...* field enter *arduboy2*.
-- Click somewhere within the Arduboy2 entry.
-- Click on the *Install* button.
+2. Install the library using the following guide:
 
-For more library installation information see
-
-[Installing Additional Arduino Libraries - Using the Library Manager](https://www.arduino.cc/en/Guide/Libraries#toc3)
+[Installing Additional Arduino Libraries](https://www.arduino.cc/en/Guide/Libraries#toc5)
 
 ## Start up features
 
@@ -41,7 +32,7 @@ The *begin()* function, used to initialize the library, includes features that a
 
 At the start of the sketch, the **ARDUBOY** logo scrolls down from the top of the screen to the center.
 
-The RGB LED lights red then green then blue while the logo is scrolling. (If your Arduboy is one of those that has the RGB LED installed incorrectly, then it will light blue then off then red). For users who do not wish to have the RGB LED flash during the boot logo sequence, a flag can be set in system EEPROM to have it remain off. The included *SetSystemEEPROM* example sketch can be used to set this flag.
+The RGB LED lights red then green then blue while the logo is scrolling. For users who do not wish to have the RGB LED flash during the boot logo sequence, a flag can be set in system EEPROM to have it remain off. The included *SetSystemEEPROM* example sketch can be used to set this flag.
 
 A user settable *unit name* of up to 6 characters can be saved in system EEPROM memory. If set, this name will be briefly displayed at the bottom of the boot logo screen, after the logo stops scrolling down. This feature is only available if the *Arduboy2* class is used, not the *Arduboy2Base* class. This is because it requires the text display functions, which are only available in the *Arduboy2* class. A flag in system EEPROM controls whether or not the *unit name* is displayed on the boot logo screen, regardless of whether the *unit name* itself has been set. The included *SetSystemEEPROM* example sketch can be used to set both the *unit name* and this flag.
 
@@ -55,7 +46,7 @@ For users who wish to always disable the displaying of the boot logo sequence on
 
 If the *UP* button is pressed and held when the Arduboy is powered on, it enters *flashlight* mode. This turns the RGB LED fully on, and all the pixels of the screen are lit, resulting in a bright white light suitable as a small flashlight. (For an incorrect RGB LED, only the screen will light). To exit *flashlight* mode the Arduboy must be restarted.
 
-*Flashlight* mode is also sometimes useful to allow uploading of new sketches, in case the sketch currently loaded uses a large amount of RAM which creates a bootloader problem.
+*Flashlight* mode is also sometimes useful to allow uploading of new sketches.
 
 ### Audio mute control
 
@@ -74,7 +65,7 @@ Note that the audio control feature only sets a flag in EEPROM. Whatever code ac
 As with most libraries, to use Arduboy2 in your sketch you must include its header file at the start:
 
 ```cpp
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 ```
 
 You must then create an Arduboy2 class object:
@@ -122,7 +113,7 @@ The Arduboy2Base class, and thus the Arduboy2 class, creates an Arduboy2Audio cl
 Example:
 
 ```cpp
-#include <Arduboy2.h>
+#include <Arduboy2DotMG.h>
 
 Arduboy2 arduboy;
 
@@ -133,9 +124,7 @@ Arduboy2 arduboy;
 
 ### Simple tone generation
 
-The *BeepPin1* and *BeepPin2* classes are available to generate simple square wave tones using speaker pin 1 and speaker pin 2 respectively. These classes are documented in file *Arduboy2Beep.h*. Also, *BeepDemo* is included as one of the example sketches, which demonstrates basic use.
-
-NOTE: These functions will not work with a DevKit Arduboy because the speaker pins used cannot be directly controlled by a timer/counter. "Dummy" functions are provided so a sketch will compile and work properly but no sound will be produced.
+The *BeepPin1* and *BeepPin2* classes are available to generate simple square wave tones. These classes are documented in file *Arduboy2BeepDotMG.h*. Also, *BeepDemo* is included as one of the example sketches, which demonstrates basic use.
 
 ### Ways to make more code space available to sketches
 
@@ -169,53 +158,7 @@ Arduboy2Base arduboy;
 
 As previously described, the *begin()* function includes features that are intended to be available to all sketches during boot up. However, if you're looking to gain some code space, you can call *boot()* instead of *begin()*. This will initialize the system but not include any of the extra boot up features. If desired, you can then add back in any of these features by calling the functions that perform them. You will have to trade off between the desirability of having a feature and how much memory you can recover by not including it.
 
-A good way to use *boot()* instead of *begin()* is to copy the code from the body of the *begin()* function, in file *Arduboy2.cpp*, into your sketch and then edit it to retain the *boot()* call and any feature calls desired.
-
-As of this writing, the begin function is:
-
-```cpp
-void Arduboy2Base::begin()
-{
-  boot(); // raw hardware
-
-  display(); // blank the display (sBuffer is global, so cleared automatically)
-
-  flashlight(); // light the RGB LED and screen if UP button is being held.
-
-  // check for and handle buttons held during start up for system control
-  systemButtons();
-
-  audio.begin();
-
-  bootLogo();
-
-  waitNoButtons(); // wait for all buttons to be released
-}
-```
-
-To incorporate it into your sketch just keep *boot()* and whatever feature calls are desired, if any. Comment out or delete the rest. Remember to add the class object name in front of each function call, since they're now being called from outside the class itself. If your sketch uses sound, it's a good idea to keep the call to *audio.begin()*.
-
-For example: Let's say a sketch has its own code to enable, disable and save the *audio on/off* setting, and wants to keep the *flashlight* function. In *setup()* it could replace *begin()* with:
-
-```cpp
-  arduboy.boot(); // raw hardware
-
-// *** This particular sketch clears the display soon, so it doesn't need this:
-//  display(); // blank the display (sBuffer is global, so cleared automatically)
-
-  arduboy.flashlight(); // light the RGB LED and screen if UP button is being held.
-
-  // check for and handle buttons held during start up for system control
-//  systemButtons();
-
-  arduboy.audio.begin();
-
-//  bootLogo();
-
-//  waitNoButtons(); // wait for all buttons to be released
-```
-
-This saves whatever code *display()*, *systemButtons()*, *bootLogo()* and *waitNoButtons()* would use.
+A good way to use *boot()* instead of *begin()* is to copy the code from the body of the *begin()* function, in file *Arduboy2.cpp*, into your sketch and then edit it to retain the *boot()* call and any feature calls desired. Remember to add the class object name in front of each function call, since they're now being called from outside the class itself. If your sketch uses sound, it's a good idea to keep the call to *audio.begin()*.
 
 There are a few functions provided that are roughly equivalent to the standard functions used by *begin()* but which use less code space.
 
@@ -235,12 +178,6 @@ You can easily switch between using *Sprites* or *SpritesB* by using one or the 
 Sprites sprites;  // Use this to optimize for execution speed
 SpritesB sprites; // Use this to (likely) optimize for code size
 ```
-
-#### Eliminate the USB stack code
-
-**Warning:** Although this will free up a fair amount of code and some RAM space, without an active USB interface uploader programs will be unable to automatically force a reset to invoke the bootloader. This means the user will have to manually initiate a reset in order to upload a new sketch. This can be an inconvenience or even frustrating for a user, due to the fact that timing the sequence can sometimes be tricky. Therefore, using this technique should be considered as a last resort. If it is used, the sketch documentation should state clearly what will be involved to upload a new sketch.
-
-The *ARDUBOY_NO_USB* macro is used to eliminate the USB code. The *exitToBootloader()* function is available to make it easier for a user to invoke the bootloader. For more details, see the documentation provided for these.
 
 ----------
 
@@ -268,170 +205,6 @@ As of version 2.1.0 functionality from the [Team A.R.G.](http://www.team-arg.org
 - The *drawCompressed()* function, which allows compressed bitmaps to be drawn. Saving bitmaps in compressed form may reduce overall sketch size.
 
 Team A.R.G. has now migrated all of their games and demos to use the Arduboy2 library.
-
-## Migrating a sketch from Arduboy library V1.1 to Arduboy2
-
-Since the Arduboy2 library can coexist in the Arduino IDE alongside the Arduboy library V1.1, a currently working sketch that uses Arduboy V1.1 doesn't have to be migrated to Arduboy2. However, if you want to switch a sketch to Arduboy2 for further development, in order to take advantage of any of the changes and enhancements, it's generally relatively easy.
-
-The Arduboy2 library, for the most part, is compatible with Arduboy library V1.1 but migrating a sketch to Arduboy2 will require some small changes, and more so if it uses the *tunes* functions, such as *tunes.tone()* or *tunes.playScore()*.
-
-### Required changes
-
-The first thing to do is change the `include` for the library header file:
-
-```cpp
-#include <Arduboy.h>
-```
-
-becomes
-
-```cpp
-#include <Arduboy2.h>
-```
-
-If it was "Arduboy.h" (in quotes), it's still better to change it to &lt;Arduboy2.h&gt; (in angle brackets).
-
-The same thing has to be done with creating the library object. (If the object name isn't *arduboy*, keep whatever name is used.):
-
-```cpp
-Arduboy arduboy;
-```
-
-becomes
-
-```cpp
-Arduboy2 arduboy;
-```
-
-If the sketch doesn't use any *tunes* functions, there's a good chance this is all that has to be done to make it compile.
-
-### Sketch uses only *tunes.tone()* for sound
-
-If the sketch has sound but only uses *tunes.tone()*, solutions are:
-
-#### Solution 1: Switch to using Arduino *tone()*
-
-An easy change is to use the Arduino built in *tone()* function. You can add a function to the sketch that wraps *tone()* so that it works like *tunes.tone()*, like so:
-
-```cpp
-// Wrap the Arduino tone() function so that the pin doesn't have to be
-// specified each time. Also, don't play if audio is set to off.
-void playTone(unsigned int frequency, unsigned long duration)
-{
-  if (arduboy.audio.enabled() == true)
-  {
-    tone(PIN_SPEAKER_1, frequency, duration);
-  }
-}
-```
-
-You then change all *tunes.tone()* calls to *playTone()* calls using the same parameter values. For example:
-
-```cpp
-  arduboy.tunes.tone(1000, 250);
-```
-
-becomes
-
-```cpp
-  playTone(1000, 250);
-```
-
-#### Solution 2: Switch to using the ArduboyTones library
-
-Changing to the *ArduboyTones* library is slightly more complicated. The advantage is that it will generate less code than using *tone()* and will also allow you to easily enhance the sketch to play tone sequences instead of just single tones. ArduboyTones can also play each tone at either normal or a higher volume.
-
-You have to add an include for the ArduboyTones header file:
-
-```cpp
-#include <ArduboyTones.h>
-```
-
-You then have to create an object for the *ArduboyTones* class and pass it a pointer to the Arduboy2 *audio.enabled()* function. This must go after the creation of the Arduboy2 object, like so:
-
-```cpp
-Arduboy2 arduboy;
-ArduboyTones sound(arduboy.audio.enabled);
-```
-
-You then change all Arduboy *tunes.tone()* calls to ArduboyTones *tone()* calls using the same parameter values. For example:
-
-```cpp
-  arduboy.tunes.tone(1000, 250);
-```
-
-becomes
-
-```cpp
-  sound.tone(1000, 250);
-```
-
-See the [ArduboyTones](https://github.com/MLXXXp/ArduboyTones) README file for more information on installing and using it.
-
-#### Solution 3: Switch to using the ArduboyPlaytune library.
-
-See the following for how to do this:
-
-### Sketch uses *tunes.playScore()*
-
-If the sketch uses *tunes.playScore()*, probably the easiest solution is to use the *ArduboyPlaytune* library. *ArduboyPlaytune* is essentially the code that was in the Arduboy V1.1 *tunes* subclass, which has been removed from Arduboy2. It's been cleaned up and a few enhancements have been added, but all the Arduboy V1.1 *tunes* functions are available.
-
-You have to add an include for the ArduboyPlaytune header file:
-
-```cpp
-#include <ArduboyPlaytune.h>
-```
-
-You then have to create an object for the *ArduboyPlaytune* class and pass it a pointer to the Arduboy2 *audio.enabled()* function. This must go after the creation of the Arduboy2 object, like so:
-
-```cpp
-Arduboy2 arduboy;
-ArduboyPlaytune tunes(arduboy.audio.enabled);
-```
-
-The sound channels must then be initialzed and assigned to the speaker pins. This code would go in the *setup()* function:
-
-```cpp
-  // audio setup
-  tunes.initChannel(PIN_SPEAKER_1);
-#ifndef AB_DEVKIT
-  // if not a DevKit
-  tunes.initChannel(PIN_SPEAKER_2);
-#else
-  // if it's a DevKit
-  tunes.initChannel(PIN_SPEAKER_1); // use the same pin for both channels
-  tunes.toneMutesScore(true);       // mute the score when a tone is sounding
-#endif
-```
-
-If you name the ArduboyPlaytune object *tunes* as shown above, then you just have to remove the Arduboy object name from any *tunes* calls. For example:
-
-```cpp
-  arduboy.tunes.playScore(mySong);
-```
-
-becomes
-
-```cpp
-  tunes.playScore(mySong);
-```
-
-See the [*ArduboyPlaytune* library](https://github.com/Arduboy/ArduboyPlayTune) documentation for more information.
-
-If you don't need to play scores containing two parts, and don't require tones to be played in parallel with a score that's playing, then as an alternative to using *ArduboyPlaytune* you may wish to consider switching to *ArduboyTones*. This may require a bit of work because any *ArduboyPlaytune* scores would have to be converted to *ArduboyTones* format. It would involve changing note numbers to frequencies. This could be simplified by using the provided *NOTE_* defines. Also, durations would have to be converted, including adding silent "rest" tones as necessary.
-
-The benefit of using *ArduboyTones* would be reduced code size and possibly easier addition of new sequences without the need of a MIDI to Playtune format converter.
-
-### Sketch uses the *beginNoLogo()* function instead of *begin()*
-
-The *beginNoLogo()* function has been removed. Instead, *boot()* can be used with additional functions following it to add back in desired boot functionality. See the information above, under the heading *Remove boot up features*, for more details. Assuming the object is named *arduboy*, a direct replacement for *beginNoLogo()* would be:
-
-```cpp
-  arduboy.boot();
-  arduboy.display();
-  arduboy.flashlight();
-  arduboy.audio.begin();
-```
 
 ----------
 

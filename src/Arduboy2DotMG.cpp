@@ -4,7 +4,7 @@
  * The Arduboy2Base and Arduboy2 classes and support objects and definitions.
  */
 
-#include "Arduboy2.h"
+#include "Arduboy2DotMG.h"
 #include "ab_logo.c"
 #include "glcdfont.c"
 
@@ -49,8 +49,6 @@ void Arduboy2Base::begin()
 {
   boot(); // raw hardware
 
-  display(); // blank the display (sBuffer is global, so cleared automatically)
-
   flashlight(); // light the RGB LED and screen if UP button is being held.
 
   // check for and handle buttons held during start up for system control
@@ -58,6 +56,7 @@ void Arduboy2Base::begin()
 
   audio.begin();
 
+  drawBorder();
   bootLogo();
   // alternative logo functions. Work the same as bootLogo() but may reduce
   // memory size if the sketch uses the same bitmap drawing function
@@ -76,15 +75,7 @@ void Arduboy2Base::flashlight()
     return;
   }
 
-  sendLCDCommand(OLED_ALL_PIXELS_ON); // smaller than allPixelsOn()
-  digitalWriteRGB(RGB_ON, RGB_ON, RGB_ON);
-
-#ifndef ARDUBOY_CORE // for Arduboy core timer 0 should remain enabled
-  // prevent the bootloader magic number from being overwritten by timer 0
-  // when a timer variable overlaps the magic number location, for when
-  // flashlight mode is used for upload problem recovery
-  power_timer0_disable();
-#endif
+  sendLCDCommand(ST77XX_DISPOFF); // smaller than allPixelsOn()
 
   while (true) {
     idle();
@@ -230,6 +221,7 @@ void Arduboy2Base::waitNoButtons() {
   } while (buttonsState());
 }
 
+
 /* Frame management */
 
 void Arduboy2Base::setFrameRate(uint8_t rate)
@@ -277,15 +269,7 @@ bool Arduboy2Base::nextFrame()
 
 bool Arduboy2Base::nextFrameDEV()
 {
-  bool ret = nextFrame();
-
-  if (ret) {
-    if (lastFrameDurationMs > eachFrameMillis)
-      TXLED1;
-    else
-      TXLED0;
-  }
-  return ret;
+  return nextFrame();
 }
 
 int Arduboy2Base::cpuLoad()
@@ -295,25 +279,14 @@ int Arduboy2Base::cpuLoad()
 
 unsigned long Arduboy2Base::generateRandomSeed()
 {
-  unsigned long seed;
-
-  power_adc_enable(); // ADC on
-
-  // do an ADC read from an unconnected input pin
-  ADCSRA |= _BV(ADSC); // start conversion (ADMUX has been pre-set in boot())
-  while (bit_is_set(ADCSRA, ADSC)) { } // wait for conversion complete
-
-  seed = ((unsigned long)ADC << 16) + micros();
-
-  power_adc_disable(); // ADC off
-
-  return seed;
+  return micros();
 }
 
 void Arduboy2Base::initRandomSeed()
 {
   randomSeed(generateRandomSeed());
 }
+
 
 /* Graphics */
 
@@ -338,11 +311,11 @@ void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
   (
     // bit = 1 << (y & 7)
     "ldi  %[bit], 1                    \n" //bit = 1;
-    "sbrc %[y], 1                      \n" //if (y & _BV(1)) bit = 4;
+    "sbrc %[y], 1                      \n" //if (y & bit(1)) bit = 4;
     "ldi  %[bit], 4                    \n"
-    "sbrc %[y], 0                      \n" //if (y & _BV(0)) bit = bit << 1;
+    "sbrc %[y], 0                      \n" //if (y & bit(0)) bit = bit << 1;
     "lsl  %[bit]                       \n"
-    "sbrc %[y], 2                      \n" //if (y & _BV(2)) bit = (bit << 4) | (bit >> 4);
+    "sbrc %[y], 2                      \n" //if (y & bit(2)) bit = (bit << 4) | (bit >> 4);
     "swap %[bit]                       \n"
     //row_offset = y / 8 * WIDTH + x;
     "andi %A[y], 0xf8                  \n" //row_offset = (y & 0xF8) * WIDTH / 8
@@ -361,7 +334,7 @@ void Arduboy2Base::drawPixel(int16_t x, int16_t y, uint8_t color)
     :
   );
   uint8_t data = sBuffer[row_offset] | bit;
-  if (!(color & _BV(0))) data ^= bit;
+  if (!(color & bit(0))) data ^= bit;
   sBuffer[row_offset] = data;
 }
 #if 0
@@ -390,7 +363,7 @@ uint8_t Arduboy2Base::getPixel(uint8_t x, uint8_t y)
 {
   uint8_t row = y / 8;
   uint8_t bit_position = y % 8;
-  return (sBuffer[(row*WIDTH) + x] & _BV(bit_position)) >> bit_position;
+  return (sBuffer[(row*WIDTH) + x] & bit(bit_position)) >> bit_position;
 }
 
 void Arduboy2Base::drawCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color)
@@ -1195,27 +1168,11 @@ Arduboy2::Arduboy2()
 // if changes are made to one, equivalent changes should be made to the other
 void Arduboy2::bootLogoText()
 {
-  bool showLEDs = readShowBootLogoLEDsFlag();
-
   if (!readShowBootLogoFlag()) {
     return;
   }
 
-  if (showLEDs) {
-    digitalWriteRGB(RED_LED, RGB_ON);
-  }
-
   for (int16_t y = -16; y <= 24; y++) {
-    if (pressed(RIGHT_BUTTON)) {
-      digitalWriteRGB(RGB_OFF, RGB_OFF, RGB_OFF); // all LEDs off
-      return;
-    }
-
-    if (showLEDs && y == 4) {
-      digitalWriteRGB(RED_LED, RGB_OFF);    // red LED off
-      digitalWriteRGB(GREEN_LED, RGB_ON);   // green LED on
-    }
-
     // Using display(CLEAR_BUFFER) instead of clear() may save code space.
     // The extra time it takes to repaint the previous logo isn't an issue.
     display(CLEAR_BUFFER);
@@ -1228,19 +1185,23 @@ void Arduboy2::bootLogoText()
     delayShort(11);
   }
 
-  if (showLEDs) {
-    digitalWriteRGB(GREEN_LED, RGB_OFF);  // green LED off
-    digitalWriteRGB(BLUE_LED, RGB_ON);    // blue LED on
-  }
   delayShort(400);
-  digitalWriteRGB(BLUE_LED, RGB_OFF);
-
   bootLogoExtra();
 }
 
 void Arduboy2::bootLogoExtra()
 {
   uint8_t c;
+  const uint8_t forText[] = "for dotMG";
+
+  cursor_x = (WIDTH - (sizeof(forText)*6))/2;
+  cursor_y = 44;
+  for (int i = 0; i < sizeof(forText); i++) {
+    write(forText[i]);
+  }
+
+  display();
+  delayShort(1000);
 
   if (!readShowUnitNameFlag())
   {
@@ -1252,7 +1213,7 @@ void Arduboy2::bootLogoExtra()
   if (c != 0xFF && c != 0x00)
   {
     uint8_t i = EEPROM_UNIT_NAME;
-    cursor_x = 50;
+    cursor_x = cursor_x = (WIDTH - ARDUBOY_UNIT_NAME_LEN*6)/2;
     cursor_y = 56;
 
     do

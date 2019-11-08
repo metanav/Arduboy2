@@ -10,9 +10,9 @@ related or neighboring rights to this BeepDemo program.
 
 // Comments are only provided for code dealing with tone generation or control.
 
-#include <Arduboy2.h>
-// There's no need to #include <Arduboy2Beep.h>
-// It will be included in Arduboy2.h
+#include <Arduboy2DotMG.h>
+// There's no need to #include <Arduboy2BeepDotMG.h>
+// It will be included in Arduboy2DotMG.h
 
 Arduboy2 arduboy;
 

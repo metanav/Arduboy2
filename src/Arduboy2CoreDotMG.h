@@ -1,317 +1,171 @@
 /**
- * @file Arduboy2Core.h
+ * @file Arduboy2CoreDotMG.h
  * \brief
  * The Arduboy2Core class for Arduboy hardware initilization and control.
  */
 
-#ifndef ARDUBOY2_CORE_H
-#define ARDUBOY2_CORE_H
+#ifndef ARDUBOY2_CORE_DOTMG_H
+#define ARDUBOY2_CORE_DOTMG_H
 
 #include <Arduino.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
 
-
 // main hardware compile flags
 
-#if !defined(ARDUBOY_10) && !defined(AB_DEVKIT)
-/* defaults to Arduboy Release 1.0 if not using a boards.txt file
- *
- * we default to Arduboy Release 1.0 if a compile flag has not been
- * passed to us from a boards.txt file
- *
- * if you wish to compile for the devkit without using a boards.txt
- * file simply comment out the ARDUBOY_10 define and uncomment
- * the AB_DEVKIT define like this:
- *
- *     // #define ARDUBOY_10
- *     #define AB_DEVKIT
- */
-#define ARDUBOY_10   //< compile for the production Arduboy v1.0
-// #define AB_DEVKIT    //< compile for the official dev kit
-#endif
-
-#define RGB_ON LOW   /**< For digitially setting an RGB LED on using digitalWriteRGB() */
-#define RGB_OFF HIGH /**< For digitially setting an RGB LED off using digitalWriteRGB() */
-
 // ----- Arduboy pins -----
-#ifdef ARDUBOY_10
 
-#define PIN_CS 12       // Display CS Arduino pin number
-#define CS_PORT PORTD   // Display CS port
-#define CS_BIT PORTD6   // Display CS physical bit number
+#define PORT_SCK_MISO_MOSI_SS_DC_RST   PORTB
+#define DDR_SCK_MISO_MOSI_SS_DC_RST    DDRB
 
-#define PIN_DC 4        // Display D/C Arduino pin number
-#define DC_PORT PORTD   // Display D/C port
-#define DC_BIT PORTD4   // Display D/C physical bit number
+#define PORT_CS_SPK_SEL_ST             PORTC
+#define PORTIN_CS_SPK_SEL_ST           PINC
+#define DDR_CS_SPK_SEL_ST              DDRC
 
-#define PIN_RST 6       // Display reset Arduino pin number
-#define RST_PORT PORTD  // Display reset port
-#define RST_BIT PORTD7  // Display reset physical bit number
+#define PORT_RT_LFT_DN_UP_B_A_TX_RX    PORTD
+#define PORTIN_RT_LFT_DN_UP_B_A_TX_RX  PIND
+#define DDR_RT_LFT_DN_UP_B_A_TX_RX     DDRD
 
-#define RED_LED 10   /**< The pin number for the red color in the RGB LED. */
-#define GREEN_LED 11 /**< The pin number for the greem color in the RGB LED. */
-#define BLUE_LED 9   /**< The pin number for the blue color in the RGB LED. */
+#define PIN_TFT_CS          A3
+#define BIT_TFT_CS          (PIN_TFT_CS - A0)
 
-#define RED_LED_PORT PORTB
-#define RED_LED_BIT PORTB6
+#define PIN_TFT_DC          9
+#define BIT_TFT_DC          (PIN_TFT_DC - 8)
 
-#define GREEN_LED_PORT PORTB
-#define GREEN_LED_BIT PORTB7
+#define PIN_TFT_RST         8
+#define BIT_TFT_RST         (PIN_TFT_RST - 8)
 
-#define BLUE_LED_PORT PORTB
-#define BLUE_LED_BIT PORTB5
+#define BIT_SPI_SS          (PIN_SPI_SS - 8)
+#define BIT_SPI_MOSI        (PIN_SPI_MOSI - 8)
+#define BIT_SPI_SCK         (PIN_SPI_SCK - 8)
 
-// bit values for button states
-// these are determined by the buttonsState() function
-#define LEFT_BUTTON _BV(5)  /**< The Left button value for functions requiring a bitmask */
-#define RIGHT_BUTTON _BV(6) /**< The Right button value for functions requiring a bitmask */
-#define UP_BUTTON _BV(7)    /**< The Up button value for functions requiring a bitmask */
-#define DOWN_BUTTON _BV(4)  /**< The Down button value for functions requiring a bitmask */
-#define A_BUTTON _BV(3)     /**< The A button value for functions requiring a bitmask */
-#define B_BUTTON _BV(2)     /**< The B button value for functions requiring a bitmask */
+#define PIN_BUTTON_A        2
+#define BIT_BUTTON_A        (PIN_BUTTON_A - 0)
 
-#define PIN_LEFT_BUTTON A2
-#define LEFT_BUTTON_PORT PORTF
-#define LEFT_BUTTON_PORTIN PINF
-#define LEFT_BUTTON_DDR DDRF
-#define LEFT_BUTTON_BIT PORTF5
+#define PIN_BUTTON_B        3
+#define BIT_BUTTON_B        (PIN_BUTTON_B - 0)
 
-#define PIN_RIGHT_BUTTON A1
-#define RIGHT_BUTTON_PORT PORTF
-#define RIGHT_BUTTON_PORTIN PINF
-#define RIGHT_BUTTON_DDR DDRF
-#define RIGHT_BUTTON_BIT PORTF6
+#define PIN_BUTTON_UP       4
+#define BIT_BUTTON_UP        (PIN_BUTTON_UP - 0)
 
-#define PIN_UP_BUTTON A0
-#define UP_BUTTON_PORT PORTF
-#define UP_BUTTON_PORTIN PINF
-#define UP_BUTTON_DDR DDRF
-#define UP_BUTTON_BIT PORTF7
+#define PIN_BUTTON_DOWN     5
+#define BIT_BUTTON_DOWN     (PIN_BUTTON_DOWN - 0)
 
-#define PIN_DOWN_BUTTON A3
-#define DOWN_BUTTON_PORT PORTF
-#define DOWN_BUTTON_PORTIN PINF
-#define DOWN_BUTTON_DDR DDRF
-#define DOWN_BUTTON_BIT PORTF4
+#define PIN_BUTTON_LEFT     6
+#define BIT_BUTTON_LEFT     (PIN_BUTTON_LEFT - 0)
 
-#define PIN_A_BUTTON 7
-#define A_BUTTON_PORT PORTE
-#define A_BUTTON_PORTIN PINE
-#define A_BUTTON_DDR DDRE
-#define A_BUTTON_BIT PORTE6
+#define PIN_BUTTON_RIGHT    7
+#define BIT_BUTTON_RIGHT    (PIN_BUTTON_RIGHT - 0)
 
-#define PIN_B_BUTTON 8
-#define B_BUTTON_PORT PORTB
-#define B_BUTTON_PORTIN PINB
-#define B_BUTTON_DDR DDRB
-#define B_BUTTON_BIT PORTB4
+#define PIN_BUTTON_START    A0
+#define BIT_BUTTON_START    (PIN_BUTTON_START - A0)
 
-#define PIN_SPEAKER_1 5  /**< The pin number of the first lead of the speaker */
-#define PIN_SPEAKER_2 13 /**< The pin number of the second lead of the speaker */
+#define PIN_BUTTON_SELECT   A1
+#define BIT_BUTTON_SELECT   (PIN_BUTTON_SELECT - A0)
 
-#define SPEAKER_1_PORT PORTC
-#define SPEAKER_1_DDR DDRC
-#define SPEAKER_1_BIT PORTC6
+#define A_BUTTON            bit(0)
+#define B_BUTTON            bit(1)
+#define UP_BUTTON           bit(2)
+#define DOWN_BUTTON         bit(3)
+#define LEFT_BUTTON         bit(4)
+#define RIGHT_BUTTON        bit(5)
+#define START_BUTTON        bit(6)
+#define SELECT_BUTTON       bit(7)
 
-#define SPEAKER_2_PORT PORTC
-#define SPEAKER_2_DDR DDRC
-#define SPEAKER_2_BIT PORTC7
-// -----------------------
+#define PIN_SPEAKER         A2
+#define BIT_SPEAKER         (PIN_SPEAKER - A0)
 
-// ----- DevKit pins -----
-#elif defined(AB_DEVKIT)
+#define RED_LED    0
+#define GREEN_LED  1
+#define BLUE_LED   2
 
-#define PIN_CS 6        // Display CS Arduino pin number
-#define CS_PORT PORTD   // Display CS port
-#define CS_BIT PORTD7   // Display CS physical bit number
+#define RGB_OFF    0
+#define RGB_ON     1
 
-#define PIN_DC 4        // Display D/C Arduino pin number
-#define DC_PORT PORTD   // Display D/C port
-#define DC_BIT PORTD4   // Display D/C physical bit number
+#define TFT_WIDTH   160
+#define TFT_HEIGHT  128
 
-#define PIN_RST 12      // Display reset Arduino pin number
-#define RST_PORT PORTD  // Display reset port
-#define RST_BIT PORTD6  // Display reset physical bit number
+#define WIDTH       128
+#define HEIGHT      64
 
-#define SPI_MOSI_PORT PORTB
-#define SPI_MOSI_BIT PORTB2
+#define COLOR(R, G, B) ((((R) & 0x1F) << 11) | (((G) & 0x3F) << 5) | ((B) & 0x1F))
 
-#define SPI_SCK_PORT PORTB
-#define SPI_SCK_BIT PORTB1
+#define ST77XX_NOP        0x00
+#define ST77XX_SWRESET    0x01
+#define ST77XX_RDDID      0x04
+#define ST77XX_RDDST      0x09
 
-// map all LEDs to the single TX LED on DEVKIT
-#define RED_LED 17
-#define GREEN_LED 17
-#define BLUE_LED 17
+#define ST77XX_SLPIN      0x10
+#define ST77XX_SLPOUT     0x11
+#define ST77XX_PTLON      0x12
+#define ST77XX_NORON      0x13
 
-#define BLUE_LED_PORT PORTB
-#define BLUE_LED_BIT PORTB0
+#define ST77XX_INVOFF     0x20
+#define ST77XX_INVON      0x21
+#define ST77XX_DISPOFF    0x28
+#define ST77XX_DISPON     0x29
+#define ST77XX_CASET      0x2A
+#define ST77XX_RASET      0x2B
+#define ST77XX_RAMWR      0x2C
+#define ST77XX_RAMRD      0x2E
 
-// bit values for button states
-// these are determined by the buttonsState() function
-#define LEFT_BUTTON _BV(5)
-#define RIGHT_BUTTON _BV(2)
-#define UP_BUTTON _BV(4)
-#define DOWN_BUTTON _BV(6)
-#define A_BUTTON _BV(1)
-#define B_BUTTON _BV(0)
+#define ST77XX_PTLAR      0x30
+#define ST77XX_COLMOD     0x3A
+#define ST77XX_MADCTL     0x36
 
-// pin values for buttons, probably shouldn't use these
-#define PIN_LEFT_BUTTON 9
-#define LEFT_BUTTON_PORT PORTB
-#define LEFT_BUTTON_PORTIN PINB
-#define LEFT_BUTTON_DDR DDRB
-#define LEFT_BUTTON_BIT PORTB5
+#define ST77XX_MADCTL_MY  0x80
+#define ST77XX_MADCTL_MX  0x40
+#define ST77XX_MADCTL_MV  0x20
+#define ST77XX_MADCTL_ML  0x10
+#define ST77XX_MADCTL_RGB 0x00
 
-#define PIN_RIGHT_BUTTON 5
-#define RIGHT_BUTTON_PORT PORTC
-#define RIGHT_BUTTON_PORTIN PINC
-#define RIGHT_BUTTON_DDR DDRC
-#define RIGHT_BUTTON_BIT PORTC6
+#define ST77XX_RDID1      0xDA
+#define ST77XX_RDID2      0xDB
+#define ST77XX_RDID3      0xDC
+#define ST77XX_RDID4      0xDD
 
-#define PIN_UP_BUTTON 8
-#define UP_BUTTON_PORT PORTB
-#define UP_BUTTON_PORTIN PINB
-#define UP_BUTTON_DDR DDRB
-#define UP_BUTTON_BIT PORTB4
+// Some ready-made 16-bit ('565') color settings:
+#define	ST77XX_BLACK      0x0000
+#define ST77XX_WHITE      0xFFFF
+#define	ST77XX_RED        0xF800
+#define	ST77XX_GREEN      0x07E0
+#define	ST77XX_BLUE       0x001F
+#define ST77XX_CYAN       0x07FF
+#define ST77XX_MAGENTA    0xF81F
+#define ST77XX_YELLOW     0xFFE0
+#define	ST77XX_ORANGE     0xFC00
 
-#define PIN_DOWN_BUTTON 10
-#define DOWN_BUTTON_PORT PORTB
-#define DOWN_BUTTON_PORTIN PINB
-#define DOWN_BUTTON_DDR DDRB
-#define DOWN_BUTTON_BIT PORTB6
+// Some register settings
+#define ST7735_MADCTL_BGR 0x08
+#define ST7735_MADCTL_MH  0x04
 
-#define PIN_A_BUTTON A0
-#define A_BUTTON_PORT PORTF
-#define A_BUTTON_PORTIN PINF
-#define A_BUTTON_DDR DDRF
-#define A_BUTTON_BIT PORTF7
+#define ST7735_FRMCTR1    0xB1
+#define ST7735_FRMCTR2    0xB2
+#define ST7735_FRMCTR3    0xB3
+#define ST7735_INVCTR     0xB4
+#define ST7735_DISSET5    0xB6
 
-#define PIN_B_BUTTON A1
-#define B_BUTTON_PORT PORTF
-#define B_BUTTON_PORTIN PINF
-#define B_BUTTON_DDR DDRF
-#define B_BUTTON_BIT PORTF6
+#define ST7735_PWCTR1     0xC0
+#define ST7735_PWCTR2     0xC1
+#define ST7735_PWCTR3     0xC2
+#define ST7735_PWCTR4     0xC3
+#define ST7735_PWCTR5     0xC4
+#define ST7735_VMCTR1     0xC5
 
-#define PIN_SPEAKER_1 A2
-#define SPEAKER_1_PORT PORTF
-#define SPEAKER_1_DDR DDRF
-#define SPEAKER_1_BIT PORTF5
-// SPEAKER_2 is purposely not defined for DEVKIT as it could potentially
-// be dangerous and fry your hardware (because of the devkit wiring).
-//
-// Reference: https://github.com/Arduboy/Arduboy/issues/108
+#define ST7735_PWCTR6     0xFC
 
-#endif
+#define ST7735_GMCTRP1    0xE0
+#define ST7735_GMCTRN1    0xE1
 // --------------------
-
-// ----- Pins common on Arduboy and DevKit -----
-
-// Unconnected analog input used for noise by initRandomSeed()
-#define RAND_SEED_IN A4
-#define RAND_SEED_IN_PORT PORTF
-#define RAND_SEED_IN_BIT PORTF1
-// Value for ADMUX to read the random seed pin: 2.56V reference, ADC1
-#define RAND_SEED_IN_ADMUX (_BV(REFS0) | _BV(REFS1) | _BV(MUX0))
-
-// SPI interface
-#define SPI_MISO_PORT PORTB
-#define SPI_MISO_BIT PORTB3
-
-#define SPI_MOSI_PORT PORTB
-#define SPI_MOSI_BIT PORTB2
-
-#define SPI_SCK_PORT PORTB
-#define SPI_SCK_BIT PORTB1
-
-#define SPI_SS_PORT PORTB
-#define SPI_SS_BIT PORTB0
-// --------------------
-
-// OLED hardware (SSD1306)
-
-#define OLED_PIXELS_INVERTED 0xA7 // All pixels inverted
-#define OLED_PIXELS_NORMAL 0xA6 // All pixels normal
-
-#define OLED_ALL_PIXELS_ON 0xA5 // all pixels on
-#define OLED_PIXELS_FROM_RAM 0xA4 // pixels mapped to display RAM contents
-
-#define OLED_VERTICAL_FLIPPED 0xC0 // reversed COM scan direction
-#define OLED_VERTICAL_NORMAL 0xC8 // normal COM scan direction
-
-#define OLED_HORIZ_FLIPPED 0xA0 // reversed segment re-map
-#define OLED_HORIZ_NORMAL 0xA1 // normal segment re-map
-
-// -----
-
-#define WIDTH 128 /**< The width of the display in pixels */
-#define HEIGHT 64 /**< The height of the display in pixels */
-
-#define COLUMN_ADDRESS_END (WIDTH - 1) & 127   // 128 pixels wide
-#define PAGE_ADDRESS_END ((HEIGHT/8)-1) & 7    // 8 pages high
 
 /** \brief
- * Eliminate the USB stack to free up code space.
- *
- * \note
- * **WARNING:** Removing the USB code will make it impossible for sketch
- * uploader programs to automatically force a reset into the bootloader!
- * This means that a user will manually have to invoke a reset in order to
- * upload a new sketch, after one without USB has be been installed.
- * Be aware that the timing for the point that a reset must be initiated can
- * be tricky, which could lead to some frustration on the user's part.
- *
- * \details
- * \parblock
- * This macro will cause the USB code, normally included in the sketch as part
- * of the standard Arduino environment, to be eliminated. This will free up a
- * fair amount of program space, and some RAM space as well, at the expense of
- * disabling all USB functionality within the sketch (except as power input).
- *
- * The macro should be placed before the `setup()` function definition:
- *
- * \code{.cpp}
- * #include <Arduboy2.h>
- *
- * Arduboy2 arduboy;
- *
- * // (Other variable declarations, etc.)
- *
- * // Eliminate the USB stack
- * ARDUBOY_NO_USB
- *
- * void setup() {
- *   arduboy.begin();
- *   // any additional setup code
- * }
- * \endcode
- *
- * As stated in the warning above, without the USB code an uploader program
- * will be unable to automatically force a reset into the bootloader to upload
- * a new sketch. The user will have to manually invoke a reset. In addition to
- * eliminating the USB code, this macro will check if the DOWN button is held
- * when the sketch first starts and, if so, will call `exitToBootloader()` to
- * start the bootloader for uploading. This makes it easier for the user than
- * having to press the reset button.
- *
- * However, to make it even more convenient for a user to invoke the bootloader
- * it is highly recommended that a sketch using this macro include a menu or
- * prompt that allows the user to press the DOWN button within the sketch,
- * which should cause `exitToBootloader()` to be called.
- *
- * At a minimum, the documentation for the sketch should clearly state that a
- * manual reset will be required, and give detailed instructions on what the
- * user must do to upload a new sketch.
- * \endparblock
+ * This macro was originally intended to eliminate the USB stack to free up
+ * code space. However, it is not implemented for dotMG, as dotMG is
+ * ATmega328P-based and has no USB code to eliminate.
  *
  * \see Arduboy2Core::exitToBootloader()
  */
-#define ARDUBOY_NO_USB int main() __attribute__ ((OS_main)); \
-int main() { \
-  Arduboy2Core::mainNoUSB(); \
-  return 0; \
-}
+#define ARDUBOY_NO_USB
 
 
 /** \brief
@@ -370,13 +224,8 @@ class Arduboy2Core
      * When placed in command mode, data that is sent to the display will be
      * treated as commands.
      *
-     * See the SSD1306 controller and OLED display documents for available
+     * See the ST7735R controller and TFT display documents for available
      * commands and command sequences.
-     *
-     * Links:
-     *
-     * - https://www.adafruit.com/datasheets/SSD1306.pdf
-     * - http://www.buydisplay.com/download/manual/ER-OLED013-1_Series_Datasheet.pdf
      *
      * \note
      * This is a low level function that is not intended for general use in a
@@ -456,9 +305,83 @@ class Arduboy2Core
      *
      * The following defined mask values should be used for the buttons:
      *
-     * LEFT_BUTTON, RIGHT_BUTTON, UP_BUTTON, DOWN_BUTTON, A_BUTTON, B_BUTTON
+     * A_BUTTON, B_BUTTON, UP_BUTTON, DOWN_BUTTON, LEFT_BUTTON, RIGHT_BUTTON, START_BUTTON, SELECT_BUTTON
      */
     uint8_t static buttonsState();
+
+    /** \brief
+     * Get the current display border line color.
+     *
+     * \details
+     * Returns a 16-bit 565-formatted RGB color value.
+     *
+     * \see setBorderLineColor() getBorderFillColor() setBorderFillColor()
+     */
+    uint16_t static getBorderLineColor();
+
+    /** \brief
+     * Set the display border line color.
+     *
+     * \details
+     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
+     *
+     * \note
+     * You can use the COLOR(r, g, b) macro to convert individual color channels
+     * to a 16-bit 565 color value.
+     *
+     * \see getBorderLineColor() getBorderFillColor() setBorderFillColor()
+     */
+    void static setBorderLineColor(uint16_t color);
+
+    /** \brief
+     * Get the current display border fill color.
+     *
+     * \details
+     * Returns a 16-bit 565-formatted RGB color value.
+     *
+     * \see setBorderFillColor() getBorderLineColor() setBorderLineColor()
+     */
+    uint16_t static getBorderFillColor();
+
+    /** \brief
+     * Set the display border fill color.
+     *
+     * \details
+     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
+     *
+     * \note
+     * You can use the COLOR(r, g, b) macro to convert individual color channels
+     * to a 16-bit 565 color value.
+     *
+     * \see getBorderFillColor() getBorderLineColor() setBorderLineColor()
+     */
+    void static setBorderFillColor(uint16_t color);
+
+    /** \brief
+     * Get the current display pixel color.
+     *
+     * \details
+     * Returns a 16-bit 565-formatted RGB color value.
+     *
+     * \see setPixelColor()
+     */
+    uint16_t static getPixelColor();
+
+    /** \brief
+     * Set the display pixel color.
+     *
+     * \details
+     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
+     * Value will take effect on next call to display().
+     *
+     * \note
+     * You can use the COLOR(r, g, b) macro to convert individual color channels
+     * to a 16-bit 565 color value.
+     *
+     * \see getPixelColor()
+     */
+    void static setPixelColor(uint16_t color);
+
 
     /** \brief
      * Paint 8 pixels vertically to the display.
@@ -645,24 +568,6 @@ class Arduboy2Core
      * The brightness of each LED can be set to a value from 0 (fully off)
      * to 255 (fully on).
      *
-     * \note
-     * \parblock
-     * Certain libraries that take control of the hardware timers may interfere
-     * with the ability of this function to properly control the RGB LED.
-     *_ArduboyPlaytune_ is one such library known to do this.
-     * The digitalWriteRGB() function will still work properly in this case.
-     * \endparblock
-     *
-     * \note
-     * \parblock
-     * Many of the Kickstarter Arduboys were accidentally shipped with the
-     * RGB LED installed incorrectly. For these units, the green LED cannot be
-     * lit. As long as the green led is set to off, setting the red LED will
-     * actually control the blue LED and setting the blue LED will actually
-     * control the red LED. If the green LED is turned fully on, none of the
-     * LEDs will light.
-     * \endparblock
-     *
      * \see setRGBled(uint8_t, uint8_t) digitalWriteRGB() freeRGBled()
      */
     void static setRGBled(uint8_t red, uint8_t green, uint8_t blue);
@@ -691,12 +596,8 @@ class Arduboy2Core
 
 
     /** \brief
-     * Relinquish analog control of the RGB LED.
-     *
-     * \details
-     * Using the RGB LED in analog mode prevents further use of the LED in
-     * digital mode. This function will restore the pins used for the LED, so
-     * it can be used in digital mode.
+     * Originally designed to relinquish analog control of the RGB LED. This is not
+     * needed for dotMG and has no implementation.
      *
      * \see digitalWriteRGB() setRGBled()
      */
@@ -708,10 +609,9 @@ class Arduboy2Core
      * \param red,green,blue Use value RGB_ON or RGB_OFF to set each LED.
      *
      * \details
-     * The RGB LED is actually individual red, green and blue LEDs placed
-     * very close together in a single package. This 3 parameter version of the
-     * function will set each LED either on or off, to set the RGB LED to
-     * 7 different colors at their highest brightness or turn it off.
+     * This 3 parameter version of the function will set each LED either on or off,
+     * to set the RGB LED to 7 different colors at their highest brightness or turn
+     * it off.
      *
      * The colors are as follows:
      *
@@ -731,16 +631,6 @@ class Arduboy2Core
      * Using the RGB LED in analog mode will prevent digital control of the
      * LED. To restore the ability to control the LED digitally, use the
      * `freeRGBled()` function.
-     * \endparblock
-     *
-     * \note
-     * \parblock
-     * Many of the Kickstarter Arduboys were accidentally shipped with the
-     * RGB LED installed incorrectly. For these units, the green LED cannot be
-     * lit. As long as the green led is set to off, turning on the red LED will
-     * actually light the blue LED and turning on the blue LED will actually
-     * light the red LED. If the green LED is turned on, none of the LEDs
-     * will light.
      * \endparblock
      *
      * \see digitalWriteRGB(uint8_t, uint8_t) setRGBled() freeRGBled()
@@ -783,17 +673,12 @@ class Arduboy2Core
     void static boot();
 
     /** \brief
-     * Allow upload when the bootloader "magic number" could be corrupted.
+     * Originally added to resolve code upload issues, this is not as
+     * necessary for the dotMG, as the dotMG is ATmega328P-based.
      *
      * \details
      * If the UP button is held when this function is entered, the RGB LED
-     * will be lit and timer 0 will be disabled, then the sketch will remain
-     * in a tight loop. This is to address a problem with uploading a new
-     * sketch, for sketches that interfere with the bootloader "magic number".
-     * The problem occurs with certain sketches that use large amounts of RAM.
-     *
-     * This function should be called after `boot()` in sketches that
-     * potentially could cause the problem.
+     * will be lit and the sketch will remain in a tight loop.
      *
      * It is intended to replace the `flashlight()` function when more
      * program space is required. If possible, it is more desirable to use
@@ -817,35 +702,34 @@ class Arduboy2Core
     void static delayShort(uint16_t ms) __attribute__ ((noinline));
 
     /** \brief
-     * Exit the sketch and start the bootloader
-     *
-     * \details
-     * The sketch will exit and the bootloader will be started in command mode.
-     * The effect will be similar to pressing the reset button.
-     *
-     * This function is intended to be used to allow uploading a new sketch,
-     * when the USB code has been removed to gain more code space.
-     * Ideally, the sketch would present a "New Sketch Upload" menu or prompt
-     * telling the user to "Press and hold the DOWN button when the procedure
-     * to upload a new sketch has been initiated". The sketch would then wait
-     * for the DOWN button to be pressed and then call this function.
-     *
+     * This function was originally intented for use with the ARDUBOY_NO_USB
+     * macro, to allow USB uploads when USB code was eliminated. Since dotMG
+     * has no USB code to eliminate, this function has no meaningful use or
+     * implementation. It simply disables interrupts and waits forever.
      * \see ARDUBOY_NO_USB
      */
     void static exitToBootloader();
 
-    // Replacement main() that eliminates the USB stack code.
-    // Used by the ARDUBOY_NO_USB macro. This should not be called
-    // directly from a sketch.
-    void static mainNoUSB();
 
   protected:
     // internals
-    void static setCPUSpeed8MHz();
     void static bootSPI();
-    void static bootOLED();
+    void static bootTFT();
     void static bootPins();
     void static bootPowerSaving();
+    void static drawBorder();
+
+  private:
+    uint16_t static borderLineColor;
+    uint16_t static borderFillColor;
+    uint16_t static pixelColor;
+    uint8_t static MADCTL;
+    uint8_t static LEDs[3];
+    bool static inverted;
+    bool static borderDrawn;
+
+    void static setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+    void static drawLEDs();
 };
 
 #endif
