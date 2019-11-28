@@ -1,6 +1,6 @@
 {
     "name": "Arduboy2DotMG",
-    "keywords": "arduboy, game",
+    "keywords": "dotmg, arduboy, game",
     "description": "An alternative library for content creation on the Modmatic dotMG handheld gaming platform",
     "repository":
     {

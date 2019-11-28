@@ -10,7 +10,6 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Arduboy2CoreDotMG.h"
-#include "Arduboy2BeepDotMG.h"
 #include "Sprites.h"
 #include "SpritesB.h"
 #include <Print.h>
