@@ -146,6 +146,8 @@ void Arduboy2Core::bootTFT()
   delayShort(100);
 
   LCDDataMode();
+
+  drawBorder();
 }
 
 void Arduboy2Core::LCDDataMode()

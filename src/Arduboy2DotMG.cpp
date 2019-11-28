@@ -56,7 +56,6 @@ void Arduboy2Base::begin()
 
   audio.begin();
 
-  drawBorder();
   bootLogo();
   // alternative logo functions. Work the same as bootLogo() but may reduce
   // memory size if the sketch uses the same bitmap drawing function

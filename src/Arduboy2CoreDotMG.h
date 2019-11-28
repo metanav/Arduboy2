@@ -717,7 +717,6 @@ class Arduboy2Core
     void static bootTFT();
     void static bootPins();
     void static bootPowerSaving();
-    void static drawBorder();
 
   private:
     uint16_t static borderLineColor;
@@ -729,6 +728,7 @@ class Arduboy2Core
     bool static borderDrawn;
 
     void static setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+    void static drawBorder();
     void static drawLEDs();
 };
 
