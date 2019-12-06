@@ -8,7 +8,7 @@
 
 #include <avr/wdt.h>
 
-uint16_t Arduboy2Core::borderLineColor = COLOR(0xF, 0x1F, 0xF);
+uint16_t Arduboy2Core::borderLineColor = ST77XX_GRAY;
 uint16_t Arduboy2Core::borderFillColor = ST77XX_BLACK;
 uint16_t Arduboy2Core::pixelColor = ST77XX_WHITE;
 uint8_t Arduboy2Core::MADCTL = ST77XX_MADCTL_MY;
@@ -101,9 +101,9 @@ void Arduboy2Core::bootTFT()
   SPItransfer(MADCTL);
   endSPItransfer();
 
-  sendLCDCommand(ST77XX_COLMOD);  // Set color mode (16-bit)
+  sendLCDCommand(ST77XX_COLMOD);  // Set color mode (12-bit)
   startSPItransfer();
-  SPItransfer(0x05);
+  SPItransfer(0x03);
   endSPItransfer();
 
   sendLCDCommand(ST7735_GMCTRP1);  // Gamma Adjustments (pos. polarity)
@@ -213,9 +213,6 @@ void Arduboy2Core::SPItransfer(uint8_t data)
     "nop\n\t"
     "nop\n\t"
     "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
     "nop"
   );
 }
@@ -299,32 +296,52 @@ void Arduboy2Core::setPixelColor(uint16_t color)
 void Arduboy2Core::paint8Pixels(uint8_t pixels)
 {
   startSPItransfer();
-  for (int b = 0; b < 8; b++)
+  for (int b = 0; b < 4; b++)
   {
-    const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
-    pixels = pixels >> 1;
-    SPItransfer(highByte(val));
-    SPItransfer(lowByte(val));
+    // TODO: Allow configurable background color
+    const uint16_t p0 = (pixels & 0x1) ? pixelColor : ST77XX_BLACK;
+    SPDR = p0 >> 4;
+    const uint16_t p1 = (pixels & 0x2) ? pixelColor : ST77XX_BLACK;
+    asm volatile(
+      "nop\n\t"
+      "nop\n\t"
+      "nop\n\t"
+      "nop\n\t"
+      "nop"
+    );
+    SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+    SPItransfer(p1);
+    pixels = pixels >> 2;
   }
   endSPItransfer();
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
-  setWriteRegion();
   const uint16_t numCells = WIDTH*HEIGHT/8;
+  setWriteRegion();
   startSPItransfer();
   for (int c = 0; c < WIDTH; c++)
   {
     for (int cell = c; cell < numCells; cell += WIDTH)
     {
       uint8_t pixels = pgm_read_byte(image + cell);
-      for (int b = 0; b < 8; b++)
+      for (int b = 0; b < 4; b++)
       {
-        const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
-        pixels = pixels >> 1;
-        SPItransfer(highByte(val));
-        SPItransfer(lowByte(val));
+        // TODO: Allow configurable background color
+        const uint16_t p0 = (pixels & 0x1) ? pixelColor : ST77XX_BLACK;
+        SPDR = p0 >> 4;
+        const uint16_t p1 = (pixels & 0x2) ? pixelColor : ST77XX_BLACK;
+        asm volatile(
+          "nop\n\t"
+          "nop\n\t"
+          "nop\n\t"
+          "nop\n\t"
+          "nop"
+        );
+        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+        SPDR = p1;
+        pixels = pixels >> 2;
       }
     }
   }
@@ -341,12 +358,22 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
     for (int cell = c; cell < numCells; cell += WIDTH)
     {
       uint8_t pixels = image[cell];
-      for (int b = 0; b < 8; b++)
+      for (int b = 0; b < 4; b++)
       {
-        const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
-        pixels = pixels >> 1;
-        SPItransfer(highByte(val));
-        SPItransfer(lowByte(val));
+        // TODO: Allow configurable background color
+        const uint16_t p0 = (pixels & 0x1) ? pixelColor : ST77XX_BLACK;
+        SPDR = p0 >> 4;
+        const uint16_t p1 = (pixels & 0x2) ? pixelColor : ST77XX_BLACK;
+        asm volatile(
+          "nop\n\t"
+          "nop\n\t"
+          "nop\n\t"
+          "nop\n\t"
+          "nop"
+        );
+        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+        SPDR = p1;
+        pixels = pixels >> 2;
       }
     }
   }
@@ -360,10 +387,11 @@ void Arduboy2Core::blank()
 {
   setWriteRegion();
   startSPItransfer();
-  for (int i = 0; i < WIDTH*HEIGHT; i++)
+  for (int i = 0; i < WIDTH*HEIGHT/2; i++)
   {
-    SPItransfer(highByte(ST77XX_BLACK));
-    SPItransfer(lowByte(ST77XX_BLACK));
+    SPItransfer(ST77XX_BLACK);
+    SPItransfer(ST77XX_BLACK);
+    SPItransfer(ST77XX_BLACK);
   }
   endSPItransfer();
 }
@@ -409,37 +437,41 @@ void Arduboy2Core::drawBorder()
 
   setWriteRegion(0, 0, TFT_WIDTH, marginY-1);
   startSPItransfer();
-  for (int i = 0; i < TFT_WIDTH*(marginY-1); i++)
+  for (int i = 0; i < (TFT_WIDTH*(marginY-1))/2; i++)
   {
-    SPItransfer(highByte(borderFillColor));
-    SPItransfer(lowByte(borderFillColor));
+    SPItransfer(borderFillColor >> 4);
+    SPItransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
+    SPItransfer(borderFillColor);
   }
   endSPItransfer();
 
   setWriteRegion(0, TFT_HEIGHT-(marginY-1), TFT_WIDTH, marginY-1);
   startSPItransfer();
-  for (int i = 0; i < TFT_WIDTH*(marginY-1); i++)
+  for (int i = 0; i < (TFT_WIDTH*(marginY-1))/2; i++)
   {
-    SPItransfer(highByte(borderFillColor));
-    SPItransfer(lowByte(borderFillColor));
+    SPItransfer(borderFillColor >> 4);
+    SPItransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
+    SPItransfer(borderFillColor);
   }
   endSPItransfer();
 
   setWriteRegion(0, marginY-1, marginX-1, windowHeight+4);
   startSPItransfer();
-  for (int i = 0; i < (marginX-1)*(windowHeight+4); i++)
+  for (int i = 0; i < ((marginX-1)*(windowHeight+4))/2; i++)
   {
-    SPItransfer(highByte(borderFillColor));
-    SPItransfer(lowByte(borderFillColor));
+    SPItransfer(borderFillColor >> 4);
+    SPItransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
+    SPItransfer(borderFillColor);
   }
   endSPItransfer();
 
   setWriteRegion(TFT_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
   startSPItransfer();
-  for (int i = 0; i < (marginX-1)*(windowHeight+4); i++)
+  for (int i = 0; i < ((marginX-1)*(windowHeight+4))/2; i++)
   {
-    SPItransfer(highByte(borderFillColor));
-    SPItransfer(lowByte(borderFillColor));
+    SPItransfer(borderFillColor >> 4);
+    SPItransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
+    SPItransfer(borderFillColor);
   }
   endSPItransfer();
 
@@ -447,46 +479,52 @@ void Arduboy2Core::drawBorder()
 
   setWriteRegion(marginX-1, marginY-1, windowWidth+2, 1);
   startSPItransfer();
-  for (int i = 0; i < windowWidth+2; i++)
+  for (int i = 0; i < (windowWidth+2)/2; i++)
   {
-    SPItransfer(highByte(borderLineColor));
-    SPItransfer(lowByte(borderLineColor));
+    SPItransfer(borderLineColor >> 4);
+    SPItransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
+    SPItransfer(borderLineColor);
   }
   endSPItransfer();
 
   setWriteRegion(marginX-1, TFT_HEIGHT-marginY, windowWidth+2, 1);
   startSPItransfer();
-  for (int i = 0; i < windowWidth+2; i++)
+  for (int i = 0; i < (windowWidth+2)/2; i++)
   {
-    SPItransfer(highByte(borderLineColor));
-    SPItransfer(lowByte(borderLineColor));
+    SPItransfer(borderLineColor >> 4);
+    SPItransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
+    SPItransfer(borderLineColor);
   }
   endSPItransfer();
 
   setWriteRegion(marginX-1, marginY, 1, windowHeight);
   startSPItransfer();
-  for (int i = 0; i < windowHeight; i++)
+  for (int i = 0; i < windowHeight/2; i++)
   {
-    SPItransfer(highByte(borderLineColor));
-    SPItransfer(lowByte(borderLineColor));
+    SPItransfer(borderLineColor >> 4);
+    SPItransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
+    SPItransfer(borderLineColor);
   }
   endSPItransfer();
 
   setWriteRegion(TFT_WIDTH-marginX, marginY, 1, windowHeight);
   startSPItransfer();
-  for (int i = 0; i < windowHeight; i++)
+  for (int i = 0; i < windowHeight/2; i++)
   {
-    SPItransfer(highByte(borderLineColor));
-    SPItransfer(lowByte(borderLineColor));
+    SPItransfer(borderLineColor >> 4);
+    SPItransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
+    SPItransfer(borderLineColor);
   }
   endSPItransfer();
 
   // clear main draw area
   setWriteRegion(marginX, marginY, windowWidth, windowHeight);
   startSPItransfer();
-  for (int i = 0; i < windowWidth*windowHeight; i++) {
-    SPItransfer(highByte(ST77XX_BLACK));
-    SPItransfer(lowByte(ST77XX_BLACK));
+  for (int i = 0; i < windowWidth*windowHeight/2; i++) {
+    // TODO: Allow configurable background color
+    SPItransfer(ST77XX_BLACK);
+    SPItransfer(ST77XX_BLACK);
+    SPItransfer(ST77XX_BLACK);
   }
   endSPItransfer();
 
@@ -594,11 +632,12 @@ void Arduboy2Core::drawLEDs()
 
   setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
   startSPItransfer();
-  for (int i = 0; i < TFT_WIDTH*5; i++)
+  for (int i = 0; i < (TFT_WIDTH*5)/2; i++)
   {
-    const uint16_t color = COLOR((red*0x1F)/0xFF, (green*0x3F)/0xFF , (blue*0x1F)/0xFF);
-    SPItransfer(highByte(color));
-    SPItransfer(lowByte(color));
+    const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF , (blue*0xF)/0xFF);
+    SPItransfer(color >> 4);
+    SPItransfer(((color & 0xF) << 4) | (color >> 8));
+    SPItransfer(color);
   }
   endSPItransfer();
 }
@@ -609,9 +648,19 @@ void Arduboy2Core::drawLEDs()
 uint8_t Arduboy2Core::buttonsState()
 {
   return (
-    (~PORTIN_RT_LFT_DN_UP_A_B_TX_RX) >> 2
+    (~PORTIN_RT_LFT_DN_UP_A_B_TX_RX & (
+      bit(BIT_BUTTON_RIGHT) |
+      bit(BIT_BUTTON_LEFT)  |
+      bit(BIT_BUTTON_DOWN)  |
+      bit(BIT_BUTTON_UP)    |
+      bit(BIT_BUTTON_B)     |
+      bit(BIT_BUTTON_A)
+    )) >> 2
   ) | (
-    (~PORTIN_CS_SPK_SEL_ST & 0b11) << 6
+    (~PORTIN_CS_SPK_SEL_ST & (
+      bit(BIT_BUTTON_SELECT) |
+      bit(BIT_BUTTON_START)
+    )) << 6
   );
 }
 

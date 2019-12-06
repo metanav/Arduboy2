@@ -88,7 +88,7 @@
 #define WIDTH       128
 #define HEIGHT      64
 
-#define COLOR(R, G, B) ((((R) & 0x1F) << 11) | (((G) & 0x3F) << 5) | ((B) & 0x1F))
+#define COLOR(R, G, B) ((((R) & 0xF) << 8) | (((G) & 0xF) << 4) | ((B) & 0xF))
 
 #define ST77XX_NOP        0x00
 #define ST77XX_SWRESET    0x01
@@ -124,16 +124,17 @@
 #define ST77XX_RDID3      0xDC
 #define ST77XX_RDID4      0xDD
 
-// Some ready-made 16-bit ('565') color settings:
+// Some ready-made 12-bit ('444') color settings:
 #define	ST77XX_BLACK      0x0000
-#define ST77XX_WHITE      0xFFFF
-#define	ST77XX_RED        0xF800
-#define	ST77XX_GREEN      0x07E0
-#define	ST77XX_BLUE       0x001F
-#define ST77XX_CYAN       0x07FF
-#define ST77XX_MAGENTA    0xF81F
-#define ST77XX_YELLOW     0xFFE0
-#define	ST77XX_ORANGE     0xFC00
+#define ST77XX_WHITE      0x0FFF
+#define ST77XX_GRAY       0x0AAA
+#define	ST77XX_RED        0x0F00
+#define	ST77XX_GREEN      0x00F0
+#define	ST77XX_BLUE       0x000F
+#define ST77XX_CYAN       0x00FF
+#define ST77XX_MAGENTA    0x0F0F
+#define ST77XX_YELLOW     0x0FF0
+#define	ST77XX_ORANGE     0x0F40
 
 // Some register settings
 #define ST7735_MADCTL_BGR 0x08
@@ -336,7 +337,7 @@ class Arduboy2Core
      * Get the current display border line color.
      *
      * \details
-     * Returns a 16-bit 565-formatted RGB color value.
+     * Returns a 12-bit 444-formatted RGB color value.
      *
      * \see setBorderLineColor() getBorderFillColor() setBorderFillColor()
      */
@@ -346,11 +347,12 @@ class Arduboy2Core
      * Set the display border line color.
      *
      * \details
-     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
+     * or boot().
      *
      * \note
      * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 16-bit 565 color value.
+     * to a 12-bit 444-formatted color value.
      *
      * \see getBorderLineColor() getBorderFillColor() setBorderFillColor()
      */
@@ -360,7 +362,7 @@ class Arduboy2Core
      * Get the current display border fill color.
      *
      * \details
-     * Returns a 16-bit 565-formatted RGB color value.
+     * Returns a 12-bit 444-formatted RGB color value.
      *
      * \see setBorderFillColor() getBorderLineColor() setBorderLineColor()
      */
@@ -370,11 +372,12 @@ class Arduboy2Core
      * Set the display border fill color.
      *
      * \details
-     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
+     * or boot().
      *
      * \note
      * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 16-bit 565 color value.
+     * to a 12-bit 444-formatted color value.
      *
      * \see getBorderFillColor() getBorderLineColor() setBorderLineColor()
      */
@@ -384,7 +387,7 @@ class Arduboy2Core
      * Get the current display pixel color.
      *
      * \details
-     * Returns a 16-bit 565-formatted RGB color value.
+     * Returns a 12-bit 444-formatted RGB color value.
      *
      * \see setPixelColor()
      */
@@ -394,12 +397,12 @@ class Arduboy2Core
      * Set the display pixel color.
      *
      * \details
-     * Color must be a 16-bit 565-formatted RGB color value. May be called before begin().
-     * Value will take effect on next call to display().
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
+     * or boot(). Value will take effect on next call to display().
      *
      * \note
      * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 16-bit 565 color value.
+     * to a 12-bit 444-formatted color value.
      *
      * \see getPixelColor()
      */
