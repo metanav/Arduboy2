@@ -23,7 +23,7 @@
 #define DDR_CS_SPK_SEL_ST              DDRC
 
 #define PORT_RT_LFT_DN_UP_B_A_TX_RX    PORTD
-#define PORTIN_RT_LFT_DN_UP_B_A_TX_RX  PIND
+#define PORTIN_RT_LFT_DN_UP_A_B_TX_RX  PIND
 #define DDR_RT_LFT_DN_UP_B_A_TX_RX     DDRD
 
 #define PIN_TFT_CS          A3
@@ -39,10 +39,10 @@
 #define BIT_SPI_MOSI        (PIN_SPI_MOSI - 8)
 #define BIT_SPI_SCK         (PIN_SPI_SCK - 8)
 
-#define PIN_BUTTON_A        2
+#define PIN_BUTTON_A        3
 #define BIT_BUTTON_A        (PIN_BUTTON_A - 0)
 
-#define PIN_BUTTON_B        3
+#define PIN_BUTTON_B        2
 #define BIT_BUTTON_B        (PIN_BUTTON_B - 0)
 
 #define PIN_BUTTON_UP       4
@@ -63,8 +63,8 @@
 #define PIN_BUTTON_SELECT   A1
 #define BIT_BUTTON_SELECT   (PIN_BUTTON_SELECT - A0)
 
-#define A_BUTTON            bit(0)
-#define B_BUTTON            bit(1)
+#define B_BUTTON            bit(0)
+#define A_BUTTON            bit(1)
 #define UP_BUTTON           bit(2)
 #define DOWN_BUTTON         bit(3)
 #define LEFT_BUTTON         bit(4)
@@ -163,7 +163,7 @@
  * code space. However, it is not implemented for dotMG, as dotMG is
  * ATmega328P-based and has no USB code to eliminate.
  *
- * \see Arduboy2Core::exitToBootloader()
+ * \see Arduboy2Core::exitToBootloader() Arduboy2Core::mainNoUSB()
  */
 #define ARDUBOY_NO_USB
 
@@ -235,6 +235,29 @@ class Arduboy2Core
      * \see LCDDataMode() sendLCDCommand() SPItransfer()
      */
     void static LCDCommandMode();
+
+    /** \brief
+     * Initializes SPI transfers for the TFT.
+     *
+     * \details
+     * Lowers the CS pin of the TFT, allowing SPI data to be sent to it.
+     * Use before one or more calls to SPItransfer(). Other SPI devices
+     * cannot receive data while the CS pin of the TFT is low.
+     *
+     * \see endSPItransfer() SPItransfer()
+     */
+    void static startSPItransfer();
+
+    /** \brief
+     * Terminates SPI transfers for the TFT.
+     *
+     * \details
+     * Raises the CS pin of the TFT, allowing other SPI devices to accept data.
+     * Use after one or mor calls to SPItransfer().
+     *
+     * \see startSPItransfer() SPItransfer()
+     */
+    void static endSPItransfer();
 
     /** \brief
      * Transfer a byte to the display.
@@ -706,10 +729,18 @@ class Arduboy2Core
      * macro, to allow USB uploads when USB code was eliminated. Since dotMG
      * has no USB code to eliminate, this function has no meaningful use or
      * implementation. It simply disables interrupts and waits forever.
-     * \see ARDUBOY_NO_USB
+     * \see ARDUBOY_NO_USB mainNoUSB()
      */
     void static exitToBootloader();
 
+    /** \brief
+     * This function was originally intended to eliminate the USB stack to free up
+     * code space. However, it is not implemented for dotMG, as dotMG is
+     * ATmega328P-based and has no USB code to eliminate.
+     *
+     * \see ARDUBOY_NO_USB exitToBootloader()
+     */
+    void static mainNoUSB();
 
   protected:
     // internals
@@ -727,7 +758,7 @@ class Arduboy2Core
     bool static inverted;
     bool static borderDrawn;
 
-    void static setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+    inline void static setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
     void static drawBorder();
     void static drawLEDs();
 };

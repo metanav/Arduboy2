@@ -87,20 +87,27 @@ void Arduboy2Core::bootTFT()
   delayShort(150);
 
   sendLCDCommand(ST77XX_SLPOUT);  // Bring out of sleep mode
-  delayShort(500);
+  delayShort(150);
 
   sendLCDCommand(ST7735_FRMCTR1);  // Framerate ctrl - normal mode
+  startSPItransfer();
   SPItransfer(0x01);               // Rate = fosc/(1x2+40) * (LINE+2C+2D)
   SPItransfer(0x2C);
   SPItransfer(0x2D);
+  endSPItransfer();
 
   sendLCDCommand(ST77XX_MADCTL);  // Set initial orientation
+  startSPItransfer();
   SPItransfer(MADCTL);
+  endSPItransfer();
 
   sendLCDCommand(ST77XX_COLMOD);  // Set color mode (16-bit)
+  startSPItransfer();
   SPItransfer(0x05);
+  endSPItransfer();
 
   sendLCDCommand(ST7735_GMCTRP1);  // Gamma Adjustments (pos. polarity)
+  startSPItransfer();
   SPItransfer(0x02);
   SPItransfer(0x1c);
   SPItransfer(0x07);
@@ -117,8 +124,10 @@ void Arduboy2Core::bootTFT()
   SPItransfer(0x01);
   SPItransfer(0x03);
   SPItransfer(0x10);
+  endSPItransfer();
 
   sendLCDCommand(ST7735_GMCTRN1);  // Gamma Adjustments (neg. polarity)
+  startSPItransfer();
   SPItransfer(0x03);
   SPItransfer(0x1D);
   SPItransfer(0x07);
@@ -135,12 +144,15 @@ void Arduboy2Core::bootTFT()
   SPItransfer(0x00);
   SPItransfer(0x02);
   SPItransfer(0x10);
+  endSPItransfer();
 
   setWriteRegion(0, 0, TFT_WIDTH, TFT_HEIGHT);
+  startSPItransfer();
   for (int i = 0; i < TFT_WIDTH*TFT_HEIGHT; i++) {
     SPItransfer(highByte(ST77XX_BLACK));
     SPItransfer(lowByte(ST77XX_BLACK));
   }
+  endSPItransfer();
 
   sendLCDCommand(ST77XX_DISPON); //  Turn screen on
   delayShort(100);
@@ -168,10 +180,19 @@ void Arduboy2Core::bootSPI()
   SPSR = bit(SPI2X);
 }
 
+void Arduboy2Core::startSPItransfer()
+{
+  bitClear(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
+}
+
+void Arduboy2Core::endSPItransfer()
+{
+  bitSet(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
+}
+
 // Write to the SPI bus (MOSI pin)
 void Arduboy2Core::SPItransfer(uint8_t data)
 {
-  bitClear(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
   SPDR = data;
   /*
    * The following NOP introduces a small delay that can prevent the wait
@@ -179,9 +200,24 @@ void Arduboy2Core::SPItransfer(uint8_t data)
    * about 10% more speed, even if it seems counter-intuitive. At lower
    * speeds it is unnoticed.
    */
-  asm volatile("nop");
-  while (!(SPSR & bit(SPIF)));  // wait
-  bitSet(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
+  asm volatile(
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop\n\t"
+    "nop"
+  );
 }
 
 void Arduboy2Core::safeMode()
@@ -262,6 +298,7 @@ void Arduboy2Core::setPixelColor(uint16_t color)
 
 void Arduboy2Core::paint8Pixels(uint8_t pixels)
 {
+  startSPItransfer();
   for (int b = 0; b < 8; b++)
   {
     const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
@@ -269,71 +306,96 @@ void Arduboy2Core::paint8Pixels(uint8_t pixels)
     SPItransfer(highByte(val));
     SPItransfer(lowByte(val));
   }
+  endSPItransfer();
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
   setWriteRegion();
-  const uint8_t numRows = HEIGHT/8;
+  const uint16_t numCells = WIDTH*HEIGHT/8;
+  startSPItransfer();
   for (int c = 0; c < WIDTH; c++)
   {
-    for (int r = 0; r < numRows; r++)
+    for (int cell = c; cell < numCells; cell += WIDTH)
     {
-      uint8_t pixels = pgm_read_byte(image + r*WIDTH+c);
-      paint8Pixels(pixels);
+      uint8_t pixels = pgm_read_byte(image + cell);
+      for (int b = 0; b < 8; b++)
+      {
+        const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
+        pixels = pixels >> 1;
+        SPItransfer(highByte(val));
+        SPItransfer(lowByte(val));
+      }
     }
   }
+  endSPItransfer();
 }
 
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
+  const uint16_t numCells = WIDTH*HEIGHT/8;
   setWriteRegion();
-  const uint8_t numRows = HEIGHT/8;
+  startSPItransfer();
   for (int c = 0; c < WIDTH; c++)
   {
-    for (int r = 0; r < numRows; r++)
+    for (int cell = c; cell < numCells; cell += WIDTH)
     {
-      uint8_t pixels = image[r*WIDTH+c];
-      paint8Pixels(pixels);
+      uint8_t pixels = image[cell];
+      for (int b = 0; b < 8; b++)
+      {
+        const uint16_t val = (pixels & 1) ? pixelColor : ST77XX_BLACK;
+        pixels = pixels >> 1;
+        SPItransfer(highByte(val));
+        SPItransfer(lowByte(val));
+      }
     }
   }
+  endSPItransfer();
 
   if (clear)
-    memset(image, 0, WIDTH*HEIGHT/8);
+    memset(image, 0, numCells);
 }
 
 void Arduboy2Core::blank()
 {
   setWriteRegion();
+  startSPItransfer();
   for (int i = 0; i < WIDTH*HEIGHT; i++)
   {
     SPItransfer(highByte(ST77XX_BLACK));
     SPItransfer(lowByte(ST77XX_BLACK));
   }
+  endSPItransfer();
 }
 
 void Arduboy2Core::sendLCDCommand(uint8_t command)
 {
   LCDCommandMode();
+  startSPItransfer();
   SPItransfer(command);
+  endSPItransfer();
   LCDDataMode();
 }
 
 void Arduboy2Core::setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
   sendLCDCommand(ST77XX_CASET);  //  Column addr set
+  startSPItransfer();
   SPItransfer(0);
   SPItransfer(y);                //  x start
   SPItransfer(0);
   SPItransfer(y + height - 1);   //  x end
+  endSPItransfer();
 
   sendLCDCommand(ST77XX_RASET);  //  Row addr set
+  startSPItransfer();
   SPItransfer(0);
   SPItransfer(x);                //  y start
   SPItransfer(0);
   SPItransfer(x + width - 1);    //  y end
+  endSPItransfer();
 
-  sendLCDCommand(ST77XX_RAMWR);  //  Write to display RAM
+  sendLCDCommand(ST77XX_RAMWR);  //  Initialize write to display RAM
 }
 
 void Arduboy2Core::drawBorder()
@@ -346,69 +408,87 @@ void Arduboy2Core::drawBorder()
   // draw border fill
 
   setWriteRegion(0, 0, TFT_WIDTH, marginY-1);
+  startSPItransfer();
   for (int i = 0; i < TFT_WIDTH*(marginY-1); i++)
   {
     SPItransfer(highByte(borderFillColor));
     SPItransfer(lowByte(borderFillColor));
   }
+  endSPItransfer();
 
   setWriteRegion(0, TFT_HEIGHT-(marginY-1), TFT_WIDTH, marginY-1);
+  startSPItransfer();
   for (int i = 0; i < TFT_WIDTH*(marginY-1); i++)
   {
     SPItransfer(highByte(borderFillColor));
     SPItransfer(lowByte(borderFillColor));
   }
+  endSPItransfer();
 
   setWriteRegion(0, marginY-1, marginX-1, windowHeight+4);
+  startSPItransfer();
   for (int i = 0; i < (marginX-1)*(windowHeight+4); i++)
   {
     SPItransfer(highByte(borderFillColor));
     SPItransfer(lowByte(borderFillColor));
   }
+  endSPItransfer();
 
   setWriteRegion(TFT_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
+  startSPItransfer();
   for (int i = 0; i < (marginX-1)*(windowHeight+4); i++)
   {
     SPItransfer(highByte(borderFillColor));
     SPItransfer(lowByte(borderFillColor));
   }
+  endSPItransfer();
 
   // draw border lines
 
   setWriteRegion(marginX-1, marginY-1, windowWidth+2, 1);
+  startSPItransfer();
   for (int i = 0; i < windowWidth+2; i++)
   {
     SPItransfer(highByte(borderLineColor));
     SPItransfer(lowByte(borderLineColor));
   }
+  endSPItransfer();
 
   setWriteRegion(marginX-1, TFT_HEIGHT-marginY, windowWidth+2, 1);
+  startSPItransfer();
   for (int i = 0; i < windowWidth+2; i++)
   {
     SPItransfer(highByte(borderLineColor));
     SPItransfer(lowByte(borderLineColor));
   }
+  endSPItransfer();
 
   setWriteRegion(marginX-1, marginY, 1, windowHeight);
+  startSPItransfer();
   for (int i = 0; i < windowHeight; i++)
   {
     SPItransfer(highByte(borderLineColor));
     SPItransfer(lowByte(borderLineColor));
   }
+  endSPItransfer();
 
   setWriteRegion(TFT_WIDTH-marginX, marginY, 1, windowHeight);
+  startSPItransfer();
   for (int i = 0; i < windowHeight; i++)
   {
     SPItransfer(highByte(borderLineColor));
     SPItransfer(lowByte(borderLineColor));
   }
+  endSPItransfer();
 
   // clear main draw area
   setWriteRegion(marginX, marginY, windowWidth, windowHeight);
+  startSPItransfer();
   for (int i = 0; i < windowWidth*windowHeight; i++) {
     SPItransfer(highByte(ST77XX_BLACK));
     SPItransfer(lowByte(ST77XX_BLACK));
   }
+  endSPItransfer();
 
   borderDrawn = true;
 }
@@ -448,7 +528,9 @@ void Arduboy2Core::flipVertical(bool flipped)
     MADCTL &= ~ST77XX_MADCTL_MX;
   }
   sendLCDCommand(ST77XX_MADCTL);
+  startSPItransfer();
   SPItransfer(MADCTL);
+  endSPItransfer();
 }
 
 // flip the display horizontally or set to normal
@@ -463,7 +545,9 @@ void Arduboy2Core::flipHorizontal(bool flipped)
     MADCTL |= ST77XX_MADCTL_MY;
   }
   sendLCDCommand(ST77XX_MADCTL);
+  startSPItransfer();
   SPItransfer(MADCTL);
+  endSPItransfer();
 }
 
 
@@ -509,12 +593,14 @@ void Arduboy2Core::drawLEDs()
   const uint8_t blue = inverted ? 0xFF - LEDs[BLUE_LED] : LEDs[BLUE_LED];
 
   setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
+  startSPItransfer();
   for (int i = 0; i < TFT_WIDTH*5; i++)
   {
     const uint16_t color = COLOR((red*0x1F)/0xFF, (green*0x3F)/0xFF , (blue*0x1F)/0xFF);
     SPItransfer(highByte(color));
     SPItransfer(lowByte(color));
   }
+  endSPItransfer();
 }
 
 
@@ -523,19 +609,9 @@ void Arduboy2Core::drawLEDs()
 uint8_t Arduboy2Core::buttonsState()
 {
   return (
-    (~PORTIN_RT_LFT_DN_UP_B_A_TX_RX & (
-      bit(BIT_BUTTON_RIGHT) |
-      bit(BIT_BUTTON_LEFT)  |
-      bit(BIT_BUTTON_DOWN)  |
-      bit(BIT_BUTTON_UP)    |
-      bit(BIT_BUTTON_B)     |
-      bit(BIT_BUTTON_A)
-    )) >> 2
+    (~PORTIN_RT_LFT_DN_UP_A_B_TX_RX) >> 2
   ) | (
-    (~PORTIN_CS_SPK_SEL_ST & (
-      bit(BIT_BUTTON_SELECT) |
-      bit(BIT_BUTTON_START)
-    )) << 6
+    (~PORTIN_CS_SPK_SEL_ST & 0b11) << 6
   );
 }
 
@@ -549,4 +625,45 @@ void Arduboy2Core::exitToBootloader()
 {
   cli();
   while(true) {}
+}
+
+void Arduboy2Core::mainNoUSB()
+{
+  init();
+
+  // Set the DOWN button pin for INPUT_PULLUP
+  bitSet(PORT_RT_LFT_DN_UP_B_A_TX_RX, BIT_BUTTON_DOWN);
+  bitClear(DDR_RT_LFT_DN_UP_B_A_TX_RX, BIT_BUTTON_DOWN);
+
+  // Delay to give time for the pin to be pulled high if it was floating
+  delayShort(10);
+
+  // if the DOWN button is pressed
+  if (bitRead(PORTIN_RT_LFT_DN_UP_A_B_TX_RX, BIT_BUTTON_DOWN) == 0) {
+    exitToBootloader();
+  }
+
+  // The remainder is a copy of the Arduino main() function with the
+  // USB code and other unneeded code commented out.
+  // init() was called above.
+  // The call to function initVariant() is commented out to fix compiler
+  // error: "multiple definition of 'main'".
+  // The return statement is removed since this function is type void.
+
+//  init();
+
+//  initVariant();
+
+//#if defined(USBCON)
+//  USBDevice.attach();
+//#endif
+
+  setup();
+
+  for (;;) {
+    loop();
+//    if (serialEventRun) serialEventRun();
+  }
+
+//  return 0;
 }
