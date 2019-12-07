@@ -65,7 +65,6 @@ void setup()
   arduboy.setBorderFillColor(ST77XX_GRAY);
   arduboy.setBorderLineColor(0x777);
 
-
   arduboy.begin();
   beep.begin();
   arduboy.setFrameRate(FRAME_RATE);
