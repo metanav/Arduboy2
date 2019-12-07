@@ -59,6 +59,13 @@ byte tick;
 
 void setup()
 {
+  // Add a DMG-style color scheme
+  arduboy.setPixelColor(0x003);
+  arduboy.setBackgroundColor(0xAD8);
+  arduboy.setBorderFillColor(ST77XX_GRAY);
+  arduboy.setBorderLineColor(0x777);
+
+
   arduboy.begin();
   beep.begin();
   arduboy.setFrameRate(FRAME_RATE);

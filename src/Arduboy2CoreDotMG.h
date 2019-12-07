@@ -128,9 +128,9 @@
 #define	ST77XX_BLACK      0x0000
 #define ST77XX_WHITE      0x0FFF
 #define ST77XX_GRAY       0x0AAA
-#define	ST77XX_RED        0x0F00
-#define	ST77XX_GREEN      0x00F0
-#define	ST77XX_BLUE       0x000F
+#define ST77XX_RED        0x0F00
+#define ST77XX_GREEN      0x00F0
+#define ST77XX_BLUE       0x000F
 #define ST77XX_CYAN       0x00FF
 #define ST77XX_MAGENTA    0x0F0F
 #define ST77XX_YELLOW     0x0FF0
@@ -339,7 +339,8 @@ class Arduboy2Core
      * \details
      * Returns a 12-bit 444-formatted RGB color value.
      *
-     * \see setBorderLineColor() getBorderFillColor() setBorderFillColor()
+     * \see setBorderLineColor() getBorderFillColor() setBorderFillColor() getPixelColor() setPixelColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     uint16_t static getBorderLineColor();
 
@@ -354,7 +355,8 @@ class Arduboy2Core
      * You can use the COLOR(r, g, b) macro to convert individual color channels
      * to a 12-bit 444-formatted color value.
      *
-     * \see getBorderLineColor() getBorderFillColor() setBorderFillColor()
+     * \see getBorderLineColor() getBorderFillColor() setBorderFillColor()  getPixelColor() setPixelColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     void static setBorderLineColor(uint16_t color);
 
@@ -364,7 +366,8 @@ class Arduboy2Core
      * \details
      * Returns a 12-bit 444-formatted RGB color value.
      *
-     * \see setBorderFillColor() getBorderLineColor() setBorderLineColor()
+     * \see setBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor() setPixelColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     uint16_t static getBorderFillColor();
 
@@ -379,7 +382,8 @@ class Arduboy2Core
      * You can use the COLOR(r, g, b) macro to convert individual color channels
      * to a 12-bit 444-formatted color value.
      *
-     * \see getBorderFillColor() getBorderLineColor() setBorderLineColor()
+     * \see getBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor() setPixelColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     void static setBorderFillColor(uint16_t color);
 
@@ -389,7 +393,8 @@ class Arduboy2Core
      * \details
      * Returns a 12-bit 444-formatted RGB color value.
      *
-     * \see setPixelColor()
+     * \see setPixelColor() getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     uint16_t static getPixelColor();
 
@@ -404,9 +409,38 @@ class Arduboy2Core
      * You can use the COLOR(r, g, b) macro to convert individual color channels
      * to a 12-bit 444-formatted color value.
      *
-     * \see getPixelColor()
+     * \see getPixelColor() getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
+     * getBackgroundColor() setBackgroundColor()
      */
     void static setPixelColor(uint16_t color);
+
+    /** \brief
+     * Get the current display background color.
+     *
+     * \details
+     * Returns a 12-bit 444-formatted RGB color value.
+     *
+     * \see setBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor() setBorderLineColor()
+     * getBorderFillColor() setBorderFillColor()
+     *
+     */
+    uint16_t static getBackgroundColor();
+
+    /** \brief
+     * Set the display background color.
+     *
+     * \details
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
+     * or boot(). Value will take effect on next call to display().
+     *
+     * \note
+     * You can use the COLOR(r, g, b) macro to convert individual color channels
+     * to a 12-bit 444-formatted color value.
+     *
+     * \see getBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor() setBorderLineColor()
+     * getBorderFillColor() setBorderFillColor()
+     */
+    void static setBackgroundColor(uint16_t color);
 
 
     /** \brief
@@ -756,6 +790,7 @@ class Arduboy2Core
     uint16_t static borderLineColor;
     uint16_t static borderFillColor;
     uint16_t static pixelColor;
+    uint16_t static bgColor;
     uint8_t static MADCTL;
     uint8_t static LEDs[3];
     bool static inverted;
