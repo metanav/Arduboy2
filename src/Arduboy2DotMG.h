@@ -8,7 +8,7 @@
 #define ARDUBOY2_DOTMG_H
 
 #include <Arduino.h>
-#include <EEPROM.h>
+// #include <EEPROM.h>
 #include "Arduboy2CoreDotMG.h"
 #include "Sprites.h"
 #include "SpritesB.h"
