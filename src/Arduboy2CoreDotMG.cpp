@@ -12,8 +12,6 @@ uint16_t Arduboy2Core::borderLineColor = ST77XX_GRAY;
 uint16_t Arduboy2Core::borderFillColor = ST77XX_BLACK;
 uint16_t Arduboy2Core::pixelColor = ST77XX_WHITE;
 uint16_t Arduboy2Core::bgColor = ST77XX_BLACK;
-uint8_t Arduboy2Core::frameCount = 0;
-uint8_t Arduboy2Core::frameRender = 0;
 uint8_t Arduboy2Core::MADCTL = ST77XX_MADCTL_MY;
 uint8_t Arduboy2Core::LEDs[] = {0, 0, 0};
 bool Arduboy2Core::inverted = false;
@@ -377,12 +375,6 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
 
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
-  if (frameRender > 1) {
-    frameCount = (frameCount + 1) % frameRender;
-    if (frameCount)
-      return;
-  }
-
   const uint16_t numCells = WIDTH*HEIGHT/8;
 
   startSPItransfer();
@@ -417,12 +409,6 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 
   if (clear)
     memset(image, 0, numCells);
-}
-
-void Arduboy2Core::renderEveryXFrames(uint8_t frames)
-{
-  frameRender = frames;
-  frameCount = 0;
 }
 
 void Arduboy2Core::blank()

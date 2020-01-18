@@ -518,25 +518,6 @@ class Arduboy2Core
     void static paintScreen(uint8_t image[], bool clear = false);
 
     /** \brief
-     * Rendering only once every X frames.
-     *
-     * \param frames The number of frames to skip before rendering.
-     * A value of 0 or 1 will disable skipping (default).
-     *
-     * \details
-     * Because dotMG uses a 12-bit pixel format, it is about 12-times slower than an
-     * original Arduboy (which uses only 1-bit pixels) when rendering frames. This
-     * function can be used to keep original Arduboy games running closer to their
-     * intended frame rate by allowing dotMG to render less frequently. Keep in mind
-     * that rendering less frequently (i.e. passing in higher values) can increase
-     * the "choppiness" of a game.
-     *
-     * This function may be called before begin() or boot(), though it may have side
-     * effects on the boot logo.
-     */
-    void static renderEveryXFrames(uint8_t frames);
-
-    /** \brief
      * Blank the display screen by setting all pixels off.
      *
      * \details
@@ -811,7 +792,6 @@ class Arduboy2Core
     uint16_t static pixelColor;
     uint16_t static bgColor;
     uint8_t static frameCount;
-    uint8_t static frameRender;
     uint8_t static MADCTL;
     uint8_t static LEDs[3];
     bool static inverted;
