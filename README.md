@@ -4,13 +4,7 @@ The **Arduboy2DotMG** library is a fork of the [Arduboy2 library](https://github
 
 ## Library documentation
 
-Comments in the library header files are formatted for the [Doxygen](http://www.doxygen.org) document generation system. The HTML files generated using the configuration file _extras/Doxyfile_ can be found at:
-
-(TBD)
-
-A generated PDF file can be found at:
-
-(TBD)
+Comments in the library header files are formatted for the [Doxygen](http://www.doxygen.org) document generation system.
 
 ## Installation
 
@@ -168,9 +162,3 @@ You can easily switch between using *Sprites* or *SpritesB* by using one or the 
 Sprites sprites;  // Use this to optimize for execution speed
 SpritesB sprites; // Use this to (likely) optimize for code size
 ```
-
-----------
-
-## What's different from the Arduboy2 library
-
-(TODO)

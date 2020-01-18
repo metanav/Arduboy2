@@ -161,8 +161,9 @@
 
 /** \brief
  * This macro was originally intended to eliminate the USB stack to free up
- * code space. However, it is not implemented for dotMG, as dotMG is
- * ATmega328P-based and has no USB code to eliminate.
+ * code space. However, USB code elimination is not implemented for dotMG.
+ * It is kept here (without a definition) simply for code compatibility
+ * purposes.
  *
  * \see Arduboy2Core::exitToBootloader() Arduboy2Core::mainNoUSB()
  */
@@ -764,16 +765,16 @@ class Arduboy2Core
     /** \brief
      * This function was originally intented for use with the ARDUBOY_NO_USB
      * macro, to allow USB uploads when USB code was eliminated. Since dotMG
-     * has no USB code to eliminate, this function has no meaningful use or
-     * implementation. It simply disables interrupts and waits forever.
+     * doesn't implement USB code elimination, this function has no meaningful
+     * use or implementation. It simply disables interrupts and waits forever.
      * \see ARDUBOY_NO_USB mainNoUSB()
      */
     void static exitToBootloader();
 
     /** \brief
      * This function was originally intended to eliminate the USB stack to free up
-     * code space. However, it is not implemented for dotMG, as dotMG is
-     * ATmega328P-based and has no USB code to eliminate.
+     * code space. However, it is not implemented for dotMG, as dotMG does not
+     * implement USB code elimination.
      *
      * \see ARDUBOY_NO_USB exitToBootloader()
      */
