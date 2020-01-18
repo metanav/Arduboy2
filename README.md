@@ -92,7 +92,7 @@ Sprites sprites;
 
 Sample sketches have been included with the library as examples of how to use it. To load an example, for examination and uploading to the Arduboy, using the Arduino IDE menus select:
 
-`File > Examples > Arduboy2`
+`File > Examples > Arduboy2DotMG`
 
 More information on writing sketches for the Arduboy can be found in the [Arduboy Community Forum](http://community.arduboy.com/).
 

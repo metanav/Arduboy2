@@ -451,15 +451,15 @@ void Arduboy2Core::setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t h
 {
   sendLCDCommand(ST77XX_CASET);  //  Column addr set
   SPItransfer(0);
-  SPItransfer(y);                //  x start
+  SPItransfer(y);                //  y start
   SPItransfer(0);
-  SPItransfer(y + height - 1);   //  x end
+  SPItransfer(y + height - 1);   //  y end
 
   sendLCDCommand(ST77XX_RASET);  //  Row addr set
   SPItransfer(0);
-  SPItransfer(x);                //  y start
+  SPItransfer(x);                //  x start
   SPItransfer(0);
-  SPItransfer(x + width - 1);    //  y end
+  SPItransfer(x + width - 1);    //  x end
 
   sendLCDCommand(ST77XX_RAMWR);  //  Initialize write to display RAM
 }
