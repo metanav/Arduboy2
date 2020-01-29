@@ -6,8 +6,6 @@
 
 #include "Arduboy2CoreDotMG.h"
 
-#include <avr/wdt.h>
-
 uint16_t Arduboy2Core::borderLineColor = ST77XX_GRAY;
 uint16_t Arduboy2Core::borderFillColor = ST77XX_BLACK;
 uint16_t Arduboy2Core::pixelColor = ST77XX_WHITE;
@@ -27,57 +25,23 @@ void Arduboy2Core::boot()
   bootPowerSaving();
 }
 
-// Pins are set to the proper modes and levels for the specific hardware.
-// This routine must be modified if any pins are moved to a different port
 void Arduboy2Core::bootPins()
 {
-  // Set inputs
-  DDR_RT_LFT_DN_UP_B_A_TX_RX &= ~(
-    bit(BIT_BUTTON_RIGHT) |
-    bit(BIT_BUTTON_LEFT)  |
-    bit(BIT_BUTTON_DOWN)  |
-    bit(BIT_BUTTON_UP)    |
-    bit(BIT_BUTTON_B)     |
-    bit(BIT_BUTTON_A)
-  );
-  DDR_CS_SPK_SEL_ST &= ~(
-    bit(BIT_BUTTON_SELECT) |
-    bit(BIT_BUTTON_START)
-  );
-
-  // Set input pullups
-  PORT_RT_LFT_DN_UP_B_A_TX_RX |= (
-    bit(BIT_BUTTON_RIGHT) |
-    bit(BIT_BUTTON_LEFT)  |
-    bit(BIT_BUTTON_DOWN)  |
-    bit(BIT_BUTTON_UP)    |
-    bit(BIT_BUTTON_B)     |
-    bit(BIT_BUTTON_A)
-  );
-  PORT_CS_SPK_SEL_ST |= (
-    bit(BIT_BUTTON_SELECT) |
-    bit(BIT_BUTTON_START)
-  );
-
-  // Set outputs
-  DDR_CS_SPK_SEL_ST |= (
-    bit(BIT_TFT_CS)
-  );
-
-  DDR_SCK_MISO_MOSI_SS_DC_RST |= (
-    bit(BIT_SPI_SCK)  |
-    bit(BIT_SPI_MOSI) |
-    bit(BIT_SPI_SS)   |
-    bit(BIT_TFT_DC)   |
-    bit(BIT_TFT_RST)
-  );
+  pinMode(PIN_BUTTON_A, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_B, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_UP, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_LEFT, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_RIGHT, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_START, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_SELECT, INPUT_PULLUP);
 }
 
 void Arduboy2Core::bootTFT()
 {
   // Reset display
   delayShort(5);  // Let display stay in reset
-  bitSet(PORT_SCK_MISO_MOSI_SS_DC_RST, BIT_TFT_RST);  // Bring out of reset
+  digitalWrite(PIN_TFT_RST, HIGH); // Bring out of reset
   delayShort(5);
 
   // run our customized boot-up command sequence against the
@@ -151,7 +115,6 @@ void Arduboy2Core::bootTFT()
 
   endSPItransfer();
 
-
   LCDDataMode();
 
   drawBorder();
@@ -169,57 +132,62 @@ void Arduboy2Core::bootTFT()
 
 void Arduboy2Core::LCDDataMode()
 {
-  bitSet(PORT_SCK_MISO_MOSI_SS_DC_RST, BIT_TFT_DC);
+  *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
 }
 
 void Arduboy2Core::LCDCommandMode()
 {
-  bitClear(PORT_SCK_MISO_MOSI_SS_DC_RST, BIT_TFT_DC);
+  *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
 }
 
 // Initialize the SPI interface for the display
 void Arduboy2Core::bootSPI()
 {
+  // TODO
+
   // master, mode 0, MSB first, CPU clock / 2 (8MHz)
-  SPCR = bit(SPE) | bit(MSTR);
-  SPSR = bit(SPI2X);
+  // SPCR = bit(SPE) | bit(MSTR);
+  // SPSR = bit(SPI2X);
 }
 
 void Arduboy2Core::startSPItransfer()
 {
-  bitClear(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
+  *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
+
 }
 
 void Arduboy2Core::endSPItransfer()
 {
-  bitSet(PORT_CS_SPK_SEL_ST, BIT_TFT_CS);
+  *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
 }
 
 // Write to the SPI bus (MOSI pin)
 void Arduboy2Core::SPItransfer(uint8_t data)
 {
-  SPDR = data;
-  /*
-   * The following NOP introduces a small delay that can prevent the wait
-   * loop form iterating when running at the maximum speed. This gives
-   * about 10% more speed, even if it seems counter-intuitive. At lower
-   * speeds it is unnoticed.
-   */
-  asm volatile(
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop\n\t"
-    "nop"
-  );
+  // TODO
+
+  // SPDR = data;
+  // /*
+  //  * The following NOP introduces a small delay that can prevent the wait
+  //  * loop form iterating when running at the maximum speed. This gives
+  //  * about 10% more speed, even if it seems counter-intuitive. At lower
+  //  * speeds it is unnoticed.
+  //  */
+  // asm volatile(
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop\n\t"
+  //   "nop"
+  // );
 }
 
 void Arduboy2Core::safeMode()
@@ -235,9 +203,11 @@ void Arduboy2Core::safeMode()
 
 void Arduboy2Core::idle()
 {
-  SMCR = bit(SE); // select idle mode and enable sleeping
-  sleep_cpu();
-  SMCR = 0; // disable sleeping
+  // TODO
+
+  // SMCR = bit(SE); // select idle mode and enable sleeping
+  // sleep_cpu();
+  // SMCR = 0; // disable sleeping
 }
 
 void Arduboy2Core::bootPowerSaving()
@@ -317,25 +287,27 @@ void Arduboy2Core::setBackgroundColor(uint16_t color)
 
 void Arduboy2Core::paint8Pixels(uint8_t pixels)
 {
-  startSPItransfer();
-  for (int b = 0; b < 4; b++)
-  {
-    const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-    SPDR = p0 >> 4;
-    const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-    asm volatile(
-      "nop\n\t"
-      "nop\n\t"
-      "nop\n\t"
-      "nop\n\t"
-      "nop\n\t"
-      "nop"
-    );
-    SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-    SPItransfer(p1);
-    pixels = pixels >> 2;
-  }
-  endSPItransfer();
+  // TODO
+
+  // startSPItransfer();
+  // for (int b = 0; b < 4; b++)
+  // {
+  //   const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
+  //   SPDR = p0 >> 4;
+  //   const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
+  //   asm volatile(
+  //     "nop\n\t"
+  //     "nop\n\t"
+  //     "nop\n\t"
+  //     "nop\n\t"
+  //     "nop\n\t"
+  //     "nop"
+  //   );
+  //   SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+  //   SPItransfer(p1);
+  //   pixels = pixels >> 2;
+  // }
+  // endSPItransfer();
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
@@ -352,20 +324,22 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
       uint8_t pixels = pgm_read_byte(image + cell);
       for (int b = 0; b < 4; b++)
       {
-        const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-        SPDR = p0 >> 4;
-        const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-        asm volatile(
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop"
-        );
-        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-        SPDR = p1;
-        pixels = pixels >> 2;
+        // TODO
+
+        // const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
+        // SPDR = p0 >> 4;
+        // const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
+        // asm volatile(
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop"
+        // );
+        // SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+        // SPDR = p1;
+        // pixels = pixels >> 2;
       }
     }
   }
@@ -387,20 +361,22 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
       uint8_t pixels = image[cell];
       for (int b = 0; b < 4; b++)
       {
-        const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-        SPDR = p0 >> 4;
-        const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-        asm volatile(
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop\n\t"
-          "nop"
-        );
-        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-        SPDR = p1;
-        pixels = pixels >> 2;
+        // TODO
+
+        // const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
+        // SPDR = p0 >> 4;
+        // const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
+        // asm volatile(
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop\n\t"
+        //   "nop"
+        // );
+        // SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+        // SPDR = p1;
+        // pixels = pixels >> 2;
       }
     }
   }
@@ -688,20 +664,17 @@ void Arduboy2Core::drawLEDs()
 
 uint8_t Arduboy2Core::buttonsState()
 {
+
+  uint32_t btns = ~(*portInputRegister(IO_PORT));
   return (
-    (~PORTIN_RT_LFT_DN_UP_A_B_TX_RX & (
-      bit(BIT_BUTTON_RIGHT) |
-      bit(BIT_BUTTON_LEFT)  |
-      bit(BIT_BUTTON_DOWN)  |
-      bit(BIT_BUTTON_UP)    |
-      bit(BIT_BUTTON_B)     |
-      bit(BIT_BUTTON_A)
-    )) >> 2
-  ) | (
-    (~PORTIN_CS_SPK_SEL_ST & (
-      bit(BIT_BUTTON_SELECT) |
-      bit(BIT_BUTTON_START)
-    )) << 6
+    (((btns & MASK_BUTTON_A) != 0) << A_BUTTON) |
+    (((btns & MASK_BUTTON_B) != 0) << B_BUTTON) |
+    (((btns & MASK_BUTTON_UP) != 0) << UP_BUTTON) |
+    (((btns & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON) |
+    (((btns & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON) |
+    (((btns & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON) |
+    (((btns & MASK_BUTTON_START) != 0) << START_BUTTON) |
+    (((btns & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON)
   );
 }
 
@@ -713,7 +686,7 @@ void Arduboy2Core::delayShort(uint16_t ms)
 
 void Arduboy2Core::exitToBootloader()
 {
-  cli();
+  noInterrupts();
   while(true) {}
 }
 
@@ -721,39 +694,22 @@ void Arduboy2Core::mainNoUSB()
 {
   init();
 
-  // Set the DOWN button pin for INPUT_PULLUP
-  bitSet(PORT_RT_LFT_DN_UP_B_A_TX_RX, BIT_BUTTON_DOWN);
-  bitClear(DDR_RT_LFT_DN_UP_B_A_TX_RX, BIT_BUTTON_DOWN);
+  pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
 
   // Delay to give time for the pin to be pulled high if it was floating
   delayShort(10);
 
-  // if the DOWN button is pressed
-  if (bitRead(PORTIN_RT_LFT_DN_UP_A_B_TX_RX, BIT_BUTTON_DOWN) == 0) {
+  // If the down button is pressed
+  if (!digitalRead(PIN_BUTTON_DOWN)) {
     exitToBootloader();
   }
 
   // The remainder is a copy of the Arduino main() function with the
-  // USB code and other unneeded code commented out.
-  // init() was called above.
-  // The call to function initVariant() is commented out to fix compiler
-  // error: "multiple definition of 'main'".
-  // The return statement is removed since this function is type void.
-
-//  init();
-
-//  initVariant();
-
-//#if defined(USBCON)
-//  USBDevice.attach();
-//#endif
+  // USB code and other unneeded code removed.
 
   setup();
 
   for (;;) {
     loop();
-//    if (serialEventRun) serialEventRun();
   }
-
-//  return 0;
 }

@@ -17,7 +17,12 @@ Copyright (c) 2016-2018, Scott Allen
 All rights reserved.
 
 In addition, TFT initialization code was written by referencing the Adafruit ST7735 library:
-(https://github.com/adafruit/Adafruit-ST7735-Library).
+https://github.com/adafruit/Adafruit-ST7735-Library.
+
+Many thanks also to Adafruit for their Arcada port of the Arduboy2 library, which was also
+referenced in the creation of this port:
+https://github.com/adafruit/Arduboy2.
+
 
 The Arduboy2 library was forked from the Arduboy library:
 https://github.com/Arduboy/Arduboy

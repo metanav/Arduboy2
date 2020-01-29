@@ -241,120 +241,64 @@ void Sprites::drawBitmap(int16_t x, int16_t y,
 
 
     case SPRITE_PLUS_MASK:
-      // *2 because we use double the bits (mask + bitmap)
-      bofs = (uint8_t *)(bitmap + ((start_h * w) + xOffset) * 2);
+      uint8_t * sprite_ofs = (uint8_t *)(bitmap + ((start_h * w) + xOffset) * 2);
+      uint8_t * buffer_ofs = (Arduboy2Base::sBuffer + ofs);
+      uint8_t * buffer_ofs_2 = (buffer_ofs + 128);
 
-      uint8_t xi = rendered_width; // counter for x loop below
+      const uint8_t sprite_ofs_jump = ((w - rendered_width) * 2);
+      const uint8_t buffer_ofs_jump = (WIDTH - rendered_width);
 
-      asm volatile(
-        "push r28\n" // save Y
-        "push r29\n"
-        "movw r28, %[buffer_ofs]\n" // Y = buffer_ofs_2
-        "adiw r28, 63\n" // buffer_ofs_2 = buffer_ofs + 128
-        "adiw r28, 63\n"
-        "adiw r28, 2\n"
-        "loop_y:\n"
-        "loop_x:\n"
-        // load bitmap and mask data
-        "lpm %A[bitmap_data], Z+\n"
-        "lpm %A[mask_data], Z+\n"
+      for(uint8_t yi = loop_h; yi > 0; --yi)
+      {
+          for(uint8_t xi = rendered_width; xi > 0; --xi)
+          {
+              // load bitmap and mask data
+              bitmap_data = pgm_read_byte(sprite_ofs);
+              ++sprite_ofs;
+              mask_data = pgm_read_byte(sprite_ofs);
+              ++sprite_ofs;
 
-        // shift mask and buffer data
-        "tst %[yOffset]\n"
-        "breq skip_shifting\n"
-        "mul %A[bitmap_data], %[mul_amt]\n"
-        "movw %[bitmap_data], r0\n"
-        "mul %A[mask_data], %[mul_amt]\n"
-        "movw %[mask_data], r0\n"
+              // shift mask and buffer data
+              if(yOffset != 0)
+              {
+                  bitmap_data *= mul_amt;
+                  mask_data *= mul_amt;
 
-        // SECOND PAGE
-        // if yOffset != 0 && sRow < 7
-        "cpi %[sRow], 7\n"
-        "brge end_second_page\n"
-        // then
-        "ld %[data], Y\n"
-        "com %B[mask_data]\n" // invert high byte of mask
-        "and %[data], %B[mask_data]\n"
-        "or %[data], %B[bitmap_data]\n"
-        // update buffer, increment
-        "st Y+, %[data]\n"
+                  // SECOND PAGE
+                  if(sRow < 7)
+                  {
+                      data = *buffer_ofs_2;
+                      mask_data = (mask_data & 0x00FF) | ((~mask_data)  & 0xFF00);
+                      data &= (uint8_t)(mask_data >> 8);
+                      data |= (uint8_t)(bitmap_data >> 8);
+                      *buffer_ofs_2 = data;
+                      ++buffer_ofs_2;
+                  }
+              }
 
-        "end_second_page:\n"
-        "skip_shifting:\n"
-
-        // FIRST PAGE
-        // if sRow >= 0
-        "tst %[sRow]\n"
-        "brmi skip_first_page\n"
-        "ld %[data], %a[buffer_ofs]\n"
-        // then
-        "com %A[mask_data]\n"
-        "and %[data], %A[mask_data]\n"
-        "or %[data], %A[bitmap_data]\n"
-        // update buffer, increment
-        "st %a[buffer_ofs]+, %[data]\n"
-        "jmp end_first_page\n"
-
-        "skip_first_page:\n"
-        // since no ST Z+ when skipped we need to do this manually
-        "adiw %[buffer_ofs], 1\n"
-
-        "end_first_page:\n"
-
-        // "x_loop_next:\n"
-        "dec %[xi]\n"
-        "brne loop_x\n"
-
-        // increment y
-        "next_loop_y:\n"
-        "dec %[yi]\n"
-        "breq finished\n"
-        "mov %[xi], %[x_count]\n" // reset x counter
-        // sRow++;
-        "inc %[sRow]\n"
-        "clr __zero_reg__\n"
-        // sprite_ofs += (w - rendered_width) * 2;
-        "add %A[sprite_ofs], %A[sprite_ofs_jump]\n"
-        "adc %B[sprite_ofs], __zero_reg__\n"
-        // buffer_ofs += WIDTH - rendered_width;
-        "add %A[buffer_ofs], %A[buffer_ofs_jump]\n"
-        "adc %B[buffer_ofs], __zero_reg__\n"
-        // buffer_ofs_page_2 += WIDTH - rendered_width;
-        "add r28, %A[buffer_ofs_jump]\n"
-        "adc r29, __zero_reg__\n"
-
-        "rjmp loop_y\n"
-        "finished:\n"
-        // put the Y register back in place
-        "pop r29\n"
-        "pop r28\n"
-        "clr __zero_reg__\n" // just in case
-        : [xi] "+&a" (xi),
-        [yi] "+&a" (loop_h),
-        [sRow] "+&a" (sRow), // CPI requires an upper register (r16-r23)
-        [data] "=&l" (data),
-        [mask_data] "=&l" (mask_data),
-        [bitmap_data] "=&l" (bitmap_data)
-        :
-        [screen_width] "M" (WIDTH),
-        [x_count] "l" (rendered_width), // lower register
-        [sprite_ofs] "z" (bofs),
-        [buffer_ofs] "x" (Arduboy2Base::sBuffer+ofs),
-        [buffer_ofs_jump] "a" (WIDTH-rendered_width), // upper reg (r16-r23)
-        [sprite_ofs_jump] "a" ((w-rendered_width)*2), // upper reg (r16-r23)
-
-        // [sprite_ofs_jump] "r" (0),
-        [yOffset] "l" (yOffset), // lower register
-        [mul_amt] "l" (mul_amt) // lower register
-        // NOTE: We also clobber r28 and r29 (y) but sometimes the compiler
-        // won't allow us, so in order to make this work we don't tell it
-        // that we clobber them. Instead, we push/pop to preserve them.
-        // Then we need to guarantee that the the compiler doesn't put one of
-        // our own variables into r28/r29.
-        // We do that by specifying all the inputs and outputs use either
-        // lower registers (l) or simple (r16-r23) upper registers (a).
-        : // pushes/clobbers/pops r28 and r29 (y)
-      );
+              // FIRST_PAGE
+              if(sRow >= 0)
+              {
+                  data = *buffer_ofs;
+                  mask_data = (mask_data & 0xFF00) | ((~mask_data)  & 0x00FF);
+                  data &= (uint8_t)(mask_data);
+                  data |= (uint8_t)(bitmap_data);
+                  *buffer_ofs = data;
+                  ++buffer_ofs;
+              }
+              else
+              {
+                ++buffer_ofs;
+              }
+          }
+          if(yi > 0)
+          {
+              ++sRow;
+              sprite_ofs += sprite_ofs_jump;
+              buffer_ofs += buffer_ofs_jump;
+              buffer_ofs_2 += buffer_ofs_jump;
+          }
+      }
       break;
   }
 }

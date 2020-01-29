@@ -8,63 +8,51 @@
 #define ARDUBOY2_CORE_DOTMG_H
 
 #include <Arduino.h>
-#include <avr/power.h>
-#include <avr/sleep.h>
 
 // main hardware compile flags
 
 // ----- Arduboy pins -----
 
-#define PORT_SCK_MISO_MOSI_SS_DC_RST   PORTB
-#define DDR_SCK_MISO_MOSI_SS_DC_RST    DDRB
+#define IO_PORT             (&(PORT->Group[PORTA]))
 
-#define PORT_CS_SPK_SEL_ST             PORTC
-#define PORTIN_CS_SPK_SEL_ST           PINC
-#define DDR_CS_SPK_SEL_ST              DDRC
+#define PIN_TFT_CS          16
+#define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
 
-#define PORT_RT_LFT_DN_UP_B_A_TX_RX    PORTD
-#define PORTIN_RT_LFT_DN_UP_A_B_TX_RX  PIND
-#define DDR_RT_LFT_DN_UP_B_A_TX_RX     DDRD
+#define PIN_TFT_DC          17
+#define MASK_TFT_DC         digitalPinToBitMask(PIN_TFT_DC)
 
-#define PIN_TFT_CS          A3
-#define BIT_TFT_CS          (PIN_TFT_CS - A0)
+#define PIN_TFT_RST         18
+#define MASK_TFT_RST        digitalPinToBitMask(PIN_TFT_RST)
 
-#define PIN_TFT_DC          9
-#define BIT_TFT_DC          (PIN_TFT_DC - 8)
+#define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_MOSI)
+#define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_SCK)
 
-#define PIN_TFT_RST         8
-#define BIT_TFT_RST         (PIN_TFT_RST - 8)
+#define PIN_BUTTON_A        9
+#define MASK_BUTTON_A       digitalPinToBitMask(PIN_BUTTON_A)
 
-#define BIT_SPI_SS          (PIN_SPI_SS - 8)
-#define BIT_SPI_MOSI        (PIN_SPI_MOSI - 8)
-#define BIT_SPI_SCK         (PIN_SPI_SCK - 8)
+#define PIN_BUTTON_B        10
+#define MASK_BUTTON_B       digitalPinToBitMask(PIN_BUTTON_B)
 
-#define PIN_BUTTON_A        3
-#define BIT_BUTTON_A        (PIN_BUTTON_A - 0)
+#define PIN_BUTTON_UP       5
+#define MASK_BUTTON_UP      digitalPinToBitMask(PIN_BUTTON_UP)
 
-#define PIN_BUTTON_B        2
-#define BIT_BUTTON_B        (PIN_BUTTON_B - 0)
+#define PIN_BUTTON_DOWN     6
+#define MASK_BUTTON_DOWN    digitalPinToBitMask(PIN_BUTTON_DOWN)
 
-#define PIN_BUTTON_UP       4
-#define BIT_BUTTON_UP        (PIN_BUTTON_UP - 0)
+#define PIN_BUTTON_LEFT     7
+#define MASK_BUTTON_LEFT    digitalPinToBitMask(PIN_BUTTON_LEFT)
 
-#define PIN_BUTTON_DOWN     5
-#define BIT_BUTTON_DOWN     (PIN_BUTTON_DOWN - 0)
+#define PIN_BUTTON_RIGHT    8
+#define MASK_BUTTON_RIGHT   digitalPinToBitMask(PIN_BUTTON_RIGHT)
 
-#define PIN_BUTTON_LEFT     6
-#define BIT_BUTTON_LEFT     (PIN_BUTTON_LEFT - 0)
+#define PIN_BUTTON_START    14
+#define MASK_BUTTON_START   digitalPinToBitMask(PIN_BUTTON_START)
 
-#define PIN_BUTTON_RIGHT    7
-#define BIT_BUTTON_RIGHT    (PIN_BUTTON_RIGHT - 0)
+#define PIN_BUTTON_SELECT   15
+#define MASK_BUTTON_SELECT  digitalPinToBitMask(PIN_BUTTON_SELECT)
 
-#define PIN_BUTTON_START    A0
-#define BIT_BUTTON_START    (PIN_BUTTON_START - A0)
-
-#define PIN_BUTTON_SELECT   A1
-#define BIT_BUTTON_SELECT   (PIN_BUTTON_SELECT - A0)
-
-#define B_BUTTON            bit(0)
-#define A_BUTTON            bit(1)
+#define A_BUTTON            bit(0)
+#define B_BUTTON            bit(1)
 #define UP_BUTTON           bit(2)
 #define DOWN_BUTTON         bit(3)
 #define LEFT_BUTTON         bit(4)
@@ -72,8 +60,7 @@
 #define START_BUTTON        bit(6)
 #define SELECT_BUTTON       bit(7)
 
-#define PIN_SPEAKER         A2
-#define BIT_SPEAKER         (PIN_SPEAKER - A0)
+#define PIN_SPEAKER         PIN_DAC0
 
 #define RED_LED    0
 #define GREEN_LED  1
