@@ -5,6 +5,7 @@
  */
 
 #include "Arduboy2CoreDotMG.h"
+#include <SPI.h>
 
 uint16_t Arduboy2Core::borderLineColor = ST77XX_GRAY;
 uint16_t Arduboy2Core::borderFillColor = ST77XX_BLACK;
@@ -39,6 +40,12 @@ void Arduboy2Core::bootPins()
 
 void Arduboy2Core::bootTFT()
 {
+  pinMode(PIN_TFT_CS, OUTPUT);
+  pinMode(PIN_TFT_DC, OUTPUT);
+  pinMode(PIN_TFT_RST, OUTPUT);
+  digitalWrite(PIN_TFT_CS, HIGH);
+  // *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
+
   // Reset display
   delayShort(5);  // Let display stay in reset
   digitalWrite(PIN_TFT_RST, HIGH); // Bring out of reset
@@ -132,62 +139,39 @@ void Arduboy2Core::bootTFT()
 
 void Arduboy2Core::LCDDataMode()
 {
-  *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
+  digitalWrite(PIN_TFT_DC, HIGH);
+  // *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
 }
 
 void Arduboy2Core::LCDCommandMode()
 {
-  *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
+  digitalWrite(PIN_TFT_DC, LOW);
+  // *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
 }
 
 // Initialize the SPI interface for the display
 void Arduboy2Core::bootSPI()
 {
-  // TODO
-
-  // master, mode 0, MSB first, CPU clock / 2 (8MHz)
-  // SPCR = bit(SPE) | bit(MSTR);
-  // SPSR = bit(SPI2X);
+  SPI.begin();
 }
 
 void Arduboy2Core::startSPItransfer()
 {
-  *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
-
+  SPI.beginTransaction(SPI_SETTINGS);
+  // *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
+  digitalWrite(PIN_TFT_CS, LOW);
 }
 
 void Arduboy2Core::endSPItransfer()
 {
-  *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
+  // *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
+  digitalWrite(PIN_TFT_CS, HIGH);
+  SPI.endTransaction();
 }
 
-// Write to the SPI bus (MOSI pin)
 void Arduboy2Core::SPItransfer(uint8_t data)
 {
-  // TODO
-
-  // SPDR = data;
-  // /*
-  //  * The following NOP introduces a small delay that can prevent the wait
-  //  * loop form iterating when running at the maximum speed. This gives
-  //  * about 10% more speed, even if it seems counter-intuitive. At lower
-  //  * speeds it is unnoticed.
-  //  */
-  // asm volatile(
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop\n\t"
-  //   "nop"
-  // );
+  SPI.transfer(data);
 }
 
 void Arduboy2Core::safeMode()
@@ -203,16 +187,12 @@ void Arduboy2Core::safeMode()
 
 void Arduboy2Core::idle()
 {
-  // TODO
-
-  // SMCR = bit(SE); // select idle mode and enable sleeping
-  // sleep_cpu();
-  // SMCR = 0; // disable sleeping
+  // Not implemented
 }
 
 void Arduboy2Core::bootPowerSaving()
 {
-  // NOP
+  // Not implemented
 }
 
 // Shut down the display
@@ -287,64 +267,12 @@ void Arduboy2Core::setBackgroundColor(uint16_t color)
 
 void Arduboy2Core::paint8Pixels(uint8_t pixels)
 {
-  // TODO
-
-  // startSPItransfer();
-  // for (int b = 0; b < 4; b++)
-  // {
-  //   const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-  //   SPDR = p0 >> 4;
-  //   const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-  //   asm volatile(
-  //     "nop\n\t"
-  //     "nop\n\t"
-  //     "nop\n\t"
-  //     "nop\n\t"
-  //     "nop\n\t"
-  //     "nop"
-  //   );
-  //   SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-  //   SPItransfer(p1);
-  //   pixels = pixels >> 2;
-  // }
-  // endSPItransfer();
+  // Not implemented
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
-  const uint16_t numCells = WIDTH*HEIGHT/8;
-
-  startSPItransfer();
-
-  setWriteRegion();
-  for (int c = 0; c < WIDTH; c++)
-  {
-    for (int cell = c; cell < numCells; cell += WIDTH)
-    {
-      uint8_t pixels = pgm_read_byte(image + cell);
-      for (int b = 0; b < 4; b++)
-      {
-        // TODO
-
-        // const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-        // SPDR = p0 >> 4;
-        // const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-        // asm volatile(
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop"
-        // );
-        // SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-        // SPDR = p1;
-        // pixels = pixels >> 2;
-      }
-    }
-  }
-
-  endSPItransfer();
+  paintScreen((uint8_t *)image, false);
 }
 
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
@@ -361,22 +289,12 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
       uint8_t pixels = image[cell];
       for (int b = 0; b < 4; b++)
       {
-        // TODO
-
-        // const uint16_t p0 = (pixels & 0x1) ? pixelColor : bgColor;
-        // SPDR = p0 >> 4;
-        // const uint16_t p1 = (pixels & 0x2) ? pixelColor : bgColor;
-        // asm volatile(
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop\n\t"
-        //   "nop"
-        // );
-        // SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-        // SPDR = p1;
-        // pixels = pixels >> 2;
+        const uint16_t p0 = (pixels & 0b01) ? pixelColor : bgColor;
+        const uint16_t p1 = (pixels & 0b10) ? pixelColor : bgColor;
+        SPItransfer(p0 >> 4);
+        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
+        SPItransfer(p1);
+        pixels = pixels >> 2;
       }
     }
   }
@@ -664,17 +582,16 @@ void Arduboy2Core::drawLEDs()
 
 uint8_t Arduboy2Core::buttonsState()
 {
-
   uint32_t btns = ~(*portInputRegister(IO_PORT));
   return (
-    (((btns & MASK_BUTTON_A) != 0) << A_BUTTON) |
-    (((btns & MASK_BUTTON_B) != 0) << B_BUTTON) |
-    (((btns & MASK_BUTTON_UP) != 0) << UP_BUTTON) |
-    (((btns & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON) |
-    (((btns & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON) |
-    (((btns & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON) |
-    (((btns & MASK_BUTTON_START) != 0) << START_BUTTON) |
-    (((btns & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON)
+    (((btns & MASK_BUTTON_A) != 0) << A_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_B) != 0) << B_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_UP) != 0) << UP_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_START) != 0) << START_BUTTON_BIT) |
+    (((btns & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON_BIT)
   );
 }
 

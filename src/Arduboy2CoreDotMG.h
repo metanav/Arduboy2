@@ -14,6 +14,7 @@
 // ----- Arduboy pins -----
 
 #define IO_PORT             (&(PORT->Group[PORTA]))
+#define SPI_SETTINGS        SPISettings(12000000, MSBFIRST, SPI_MODE0)
 
 #define PIN_TFT_CS          16
 #define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
@@ -51,14 +52,29 @@
 #define PIN_BUTTON_SELECT   15
 #define MASK_BUTTON_SELECT  digitalPinToBitMask(PIN_BUTTON_SELECT)
 
-#define A_BUTTON            bit(0)
-#define B_BUTTON            bit(1)
-#define UP_BUTTON           bit(2)
-#define DOWN_BUTTON         bit(3)
-#define LEFT_BUTTON         bit(4)
-#define RIGHT_BUTTON        bit(5)
-#define START_BUTTON        bit(6)
-#define SELECT_BUTTON       bit(7)
+#define A_BUTTON_BIT        0
+#define A_BUTTON            bit(A_BUTTON_BIT)
+
+#define B_BUTTON_BIT        1
+#define B_BUTTON            bit(B_BUTTON_BIT)
+
+#define UP_BUTTON_BIT       2
+#define UP_BUTTON           bit(UP_BUTTON_BIT)
+
+#define DOWN_BUTTON_BIT     3
+#define DOWN_BUTTON         bit(DOWN_BUTTON_BIT)
+
+#define LEFT_BUTTON_BIT     4
+#define LEFT_BUTTON         bit(LEFT_BUTTON_BIT)
+
+#define RIGHT_BUTTON_BIT    5
+#define RIGHT_BUTTON        bit(RIGHT_BUTTON_BIT)
+
+#define START_BUTTON_BIT    6
+#define START_BUTTON        bit(START_BUTTON_BIT)
+
+#define SELECT_BUTTON_BIT   7
+#define SELECT_BUTTON       bit(SELECT_BUTTON_BIT)
 
 #define PIN_SPEAKER         PIN_DAC0
 
