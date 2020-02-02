@@ -12,7 +12,6 @@
  */
 
 #include <Arduboy2DotMG.h>
-#include <Arduboy2BeepDotMG.h>
 
 // block in EEPROM to save high scores
 #define EE_FILE 2
