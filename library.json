@@ -1,7 +1,7 @@
 {
     "name": "Arduboy2DotMG",
     "keywords": "dotmg, arduboy, game",
-    "description": "An alternative library for content creation on the Modmatic dotMG handheld gaming platform",
+    "description": "Port of the Arduboy2 library for the Modmatic dotMG DIY handheld game console.",
     "repository":
     {
         "type": "git",
@@ -13,5 +13,5 @@
         "exclude": "extras"
     },
     "frameworks": "arduino",
-    "platforms": "atmelavr"
+    "platforms": "atmelsamd"
 }
