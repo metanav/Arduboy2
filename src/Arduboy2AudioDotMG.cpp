@@ -11,16 +11,16 @@ bool Arduboy2Audio::audio_enabled = false;
 
 void Arduboy2Audio::on()
 {
-  // fire up audio pins by seting them as outputs
-  pinMode(PIN_SPEAKER, OUTPUT);
   audio_enabled = true;
+  DAC->CTRLA.bit.ENABLE = 1;
+  while (DAC->STATUS.bit.SYNCBUSY);
 }
 
 void Arduboy2Audio::off()
 {
   audio_enabled = false;
-  // shut off audio pins by setting them as inputs
-  pinMode(PIN_SPEAKER, INPUT);
+  DAC->CTRLA.bit.ENABLE = 0;
+  while (DAC->STATUS.bit.SYNCBUSY);
 }
 
 void Arduboy2Audio::toggle()
@@ -38,6 +38,7 @@ void Arduboy2Audio::saveOnOff()
 
 void Arduboy2Audio::begin()
 {
+  pinMode(PIN_SPEAKER, OUTPUT);
   // if (EEPROM.read(EEPROM_AUDIO_ON_OFF))
     on();
   // else
