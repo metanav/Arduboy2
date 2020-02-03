@@ -840,6 +840,7 @@ class Arduboy2Base : public Arduboy2Core
    */
   bool nextFrame();
 
+// TODO: Update these docs
   /** \brief
    * Indicate that it's time to render the next frame, and visually indicate
    * if the code is running slower than the desired frame rate.

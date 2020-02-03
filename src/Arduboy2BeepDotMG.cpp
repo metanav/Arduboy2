@@ -8,7 +8,7 @@
 #include "Arduboy2BeepDotMG.h"
 
 uint8_t BeepChan1::duration = 0;
-static bool value1 = false;
+static volatile bool value1 = false;
 
 void BeepChan1::begin()
 {
@@ -79,7 +79,7 @@ void BeepChan1::noTone()
 
 
 uint8_t BeepChan2::duration = 0;
-static bool value2 = false;
+static volatile bool value2 = false;
 
 void BeepChan2::begin()
 {
@@ -160,7 +160,6 @@ void TC4_Handler()
 
 void TC5_Handler()
 {
-
   value2 = !value2;
   DAC->DATA.reg = (value1 ? 511 : 0) + (value2 ? 511 : 0);
 

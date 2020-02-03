@@ -774,6 +774,7 @@ class Arduboy2Core
      */
     void static exitToBootloader();
 
+// TODO: fix this function
     /** \brief
      * This function was originally intended to eliminate the USB stack to free up
      * code space. However, it is not implemented for dotMG, as dotMG does not
@@ -789,21 +790,6 @@ class Arduboy2Core
     void static bootTFT();
     void static bootPins();
     void static bootPowerSaving();
-
-  private:
-    uint16_t static borderLineColor;
-    uint16_t static borderFillColor;
-    uint16_t static pixelColor;
-    uint16_t static bgColor;
-    uint8_t static frameCount;
-    uint8_t static MADCTL;
-    uint8_t static LEDs[3];
-    bool static inverted;
-    bool static borderDrawn;
-
-    inline void static setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
-    void static drawBorder();
-    void static drawLEDs();
 };
 
 #endif
