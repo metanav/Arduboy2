@@ -171,7 +171,8 @@ void Arduboy2Core::endSPItransfer()
 
 void Arduboy2Core::SPItransfer(uint8_t data)
 {
-  SPI.transfer(data);
+  SPI_SERCOM->SPI.DATA.bit.DATA = data;
+  while(!SPI_SERCOM->SPI.INTFLAG.bit.RXC);
 }
 
 void Arduboy2Core::safeMode()

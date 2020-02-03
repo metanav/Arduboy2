@@ -15,6 +15,7 @@
 
 #define IO_PORT             (&(PORT->Group[PORTA]))
 #define SPI_SETTINGS        SPISettings(12000000, MSBFIRST, SPI_MODE0)
+#define SPI_SERCOM          SERCOM1
 
 #define PIN_TFT_CS          16
 #define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
