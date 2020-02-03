@@ -49,7 +49,6 @@ void Arduboy2Core::bootTFT()
   pinMode(PIN_TFT_DC, OUTPUT);
   pinMode(PIN_TFT_RST, OUTPUT);
   digitalWrite(PIN_TFT_CS, HIGH);
-  // *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
 
   // Reset display
   delayShort(5);  // Let display stay in reset
@@ -144,14 +143,12 @@ void Arduboy2Core::bootTFT()
 
 void Arduboy2Core::LCDDataMode()
 {
-  digitalWrite(PIN_TFT_DC, HIGH);
-  // *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
+  *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
 }
 
 void Arduboy2Core::LCDCommandMode()
 {
-  digitalWrite(PIN_TFT_DC, LOW);
-  // *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
+  *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
 }
 
 // Initialize the SPI interface for the display
@@ -163,14 +160,12 @@ void Arduboy2Core::bootSPI()
 void Arduboy2Core::startSPItransfer()
 {
   SPI.beginTransaction(SPI_SETTINGS);
-  // *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
-  digitalWrite(PIN_TFT_CS, LOW);
+  *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
 }
 
 void Arduboy2Core::endSPItransfer()
 {
-  // *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
-  digitalWrite(PIN_TFT_CS, HIGH);
+  *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
   SPI.endTransaction();
 }
 
