@@ -11,7 +11,7 @@ static uint16_t borderLineColor = ST77XX_GRAY;
 static uint16_t borderFillColor = ST77XX_BLACK;
 static uint16_t pixelColor = ST77XX_WHITE;
 static uint16_t bgColor = ST77XX_BLACK;
-static uint8_t MADCTL = ST77XX_MADCTL_MY;
+static uint8_t MADCTL = ST77XX_MADCTL_MV | ST77XX_MADCTL_MY;
 static uint8_t LEDs[] = {0, 0, 0};
 static bool inverted = false;
 static bool borderDrawn = false;
@@ -278,32 +278,39 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
 
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
-  const uint16_t numCells = WIDTH*HEIGHT/8;
+  const int frameBufLen = WIDTH*HEIGHT*12/8; // 12 bits/px, 8 bits/byte
+  uint8_t frameBuf[frameBufLen];
+  int b = 0;
+  for (int y = 0; y < HEIGHT; y++)
+  {
+    int row = y >> 3;  // y / 8
+    uint8_t rowMask = bit(y & 0x7);  // y % 8
+    for (int x = 0; x < WIDTH; x += 2)
+    {
+      // Read next 2 pixels
+      uint8_t *img = image + (x + row*WIDTH);
+      uint16_t p0 = (img[0] & rowMask) ? pixelColor : bgColor;
+      uint16_t p1 = (img[1] & rowMask) ? pixelColor : bgColor;
+
+      // Write both as 12-bit pixels (3 bytes)
+      frameBuf[b++] = p0 >> 4;
+      frameBuf[b++] = ((p0 & 0xF) << 4) | (p1 >> 8);
+      frameBuf[b++] = p1;
+    }
+  }
 
   startSPItransfer();
 
   setWriteRegion();
-  for (int c = 0; c < WIDTH; c++)
+  for (int i = 0; i < frameBufLen; i++)
   {
-    for (int cell = c; cell < numCells; cell += WIDTH)
-    {
-      uint8_t pixels = image[cell];
-      for (int b = 0; b < 4; b++)
-      {
-        const uint16_t p0 = (pixels & 0b01) ? pixelColor : bgColor;
-        const uint16_t p1 = (pixels & 0b10) ? pixelColor : bgColor;
-        SPItransfer(p0 >> 4);
-        SPItransfer(((p0 & 0xF) << 4) | (p1 >> 8));
-        SPItransfer(p1);
-        pixels = pixels >> 2;
-      }
-    }
+    SPItransfer(frameBuf[i]);
   }
 
   endSPItransfer();
 
   if (clear)
-    memset(image, 0, numCells);
+    memset(image, 0, WIDTH*HEIGHT/8);
 }
 
 void Arduboy2Core::blank()
@@ -332,15 +339,15 @@ static void setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
   Arduboy2Core::sendLCDCommand(ST77XX_CASET);  //  Column addr set
   Arduboy2Core::SPItransfer(0);
-  Arduboy2Core::SPItransfer(y);                //  y start
-  Arduboy2Core::SPItransfer(0);
-  Arduboy2Core::SPItransfer(y + height - 1);   //  y end
-
-  Arduboy2Core::sendLCDCommand(ST77XX_RASET);  //  Row addr set
-  Arduboy2Core::SPItransfer(0);
   Arduboy2Core::SPItransfer(x);                //  x start
   Arduboy2Core::SPItransfer(0);
   Arduboy2Core::SPItransfer(x + width - 1);    //  x end
+
+  Arduboy2Core::sendLCDCommand(ST77XX_RASET);  //  Row addr set
+  Arduboy2Core::SPItransfer(0);
+  Arduboy2Core::SPItransfer(y);                //  y start
+  Arduboy2Core::SPItransfer(0);
+  Arduboy2Core::SPItransfer(y + height - 1);   //  y end
 
   Arduboy2Core::sendLCDCommand(ST77XX_RAMWR);  //  Initialize write to display RAM
 }
