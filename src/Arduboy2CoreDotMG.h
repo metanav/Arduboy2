@@ -221,7 +221,7 @@ class Arduboy2Core
      *
      * \see LCDCommandMode() SPItransfer()
      */
-    void static LCDDataMode();
+    inline void static LCDDataMode();
 
     /** \brief
      * Put the display into command mode.
@@ -240,7 +240,7 @@ class Arduboy2Core
      *
      * \see LCDDataMode() sendLCDCommand() SPItransfer()
      */
-    void static LCDCommandMode();
+    inline void static LCDCommandMode();
 
     /** \brief
      * Initializes SPI transfers for the TFT.
@@ -252,7 +252,7 @@ class Arduboy2Core
      *
      * \see endSPItransfer() SPItransfer()
      */
-    void static startSPItransfer();
+    inline void static startSPItransfer();
 
     /** \brief
      * Terminates SPI transfers for the TFT.
@@ -263,7 +263,7 @@ class Arduboy2Core
      *
      * \see startSPItransfer() SPItransfer()
      */
-    void static endSPItransfer();
+    inline void static endSPItransfer();
 
     /** \brief
      * Transfer a byte to the display.
@@ -278,7 +278,7 @@ class Arduboy2Core
      *
      * \see LCDDataMode() LCDCommandMode() sendLCDCommand()
      */
-    void static SPItransfer(uint8_t data);
+    inline void static SPItransfer(uint8_t data);
 
     /** \brief
      * Turn the display off.
