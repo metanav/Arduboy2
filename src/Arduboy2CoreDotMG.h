@@ -14,8 +14,11 @@
 // ----- Arduboy pins -----
 
 #define IO_PORT             (&(PORT->Group[PORTA]))
+
 #define SPI_SETTINGS        SPISettings(12000000, MSBFIRST, SPI_MODE0)
 #define SPI_SERCOM          SERCOM1
+#define DMA_TRIGGER_SRC     SERCOM1_DMAC_ID_TX
+#define DMA_CHAN            0u
 
 #define PIN_TFT_CS          16
 #define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
@@ -219,9 +222,10 @@ class Arduboy2Core
      * sketch. It has been made public and documented for use by derived
      * classes.
      *
-     * \see LCDCommandMode() SPItransfer()
+     * \see displayCommandMode() SPITransfer()
      */
-    inline void static LCDDataMode();
+    void static displayDataMode();
+    inline void static LCDDataMode() { displayDataMode(); }  // For compatibility
 
     /** \brief
      * Put the display into command mode.
@@ -238,47 +242,80 @@ class Arduboy2Core
      * sketch. It has been made public and documented for use by derived
      * classes.
      *
-     * \see LCDDataMode() sendLCDCommand() SPItransfer()
+     * \see displayDataMode() sendDisplayCommand() SPITransfer()
      */
-    inline void static LCDCommandMode();
+    void static displayCommandMode();
+    inline void static LCDCommandMode() { displayCommandMode(); }  // For compatibility
+
 
     /** \brief
-     * Initializes SPI transfers for the TFT.
+     * Initializes SPI transfers for the display.
      *
      * \details
-     * Lowers the CS pin of the TFT, allowing SPI data to be sent to it.
-     * Use before one or more calls to SPItransfer(). Other SPI devices
-     * cannot receive data while the CS pin of the TFT is low.
+     * Acquires the SPI bus and lowers the CS pin of the display, allowing
+     * SPI data to be sent to it. Use before one or more calls to SPITransfer(). Other SPI devices
+     * cannot receive data while the CS pin of the display is low.
      *
-     * \see endSPItransfer() SPItransfer()
+     * \see endDisplaySPI() SPITransfer()
      */
-    inline void static startSPItransfer();
+    void static beginDisplaySPI();
 
     /** \brief
-     * Terminates SPI transfers for the TFT.
+     * Terminates SPI transfers for the display.
      *
      * \details
-     * Raises the CS pin of the TFT, allowing other SPI devices to accept data.
-     * Use after one or mor calls to SPItransfer().
+     * Raises the CS pin of the display, allowing other SPI devices to accept data.
+     * Use after one or mor calls to SPITransfer().
      *
-     * \see startSPItransfer() SPItransfer()
+     * \see beginDisplaySPI() SPITransfer()
      */
-    inline void static endSPItransfer();
+    void static endDisplaySPI();
 
     /** \brief
-     * Transfer a byte to the display.
-     *
-     * \param data The byte to be sent to the display.
+     * Acquires usage of the SPI bus.
      *
      * \details
-     * Transfer one byte to the display over the SPI port and wait for the
-     * transfer to complete. The byte will either be interpreted as a command
-     * or as data to be placed on the screen, depending on the command/data
-     * mode.
+     * This library uses direct memory access (DMA) to write SPI data to the
+     * display asynchronously. To avoid race conditions, any other usage of
+     * the SPI bus must wait for the SPI bus to be free.
      *
-     * \see LCDDataMode() LCDCommandMode() sendLCDCommand()
+     * To use the SPI bus for a device, use this method and the `freeSPI()`
+     * method as shown below:
+     *
+     * \code{.cpp}
+     * arduboy.acquireSPI();
+     * // lower CS pin for SPI device here
+     * SPI.beginTransaction(mySettings);
+     * SPI.transfer(myData);  // or arduboy.SPITransfer(myData)
+     * ...
+     * SPI.endTransaction();
+     * // raise CS pin for SPI device here
+     * arduboy.freeSPI();
+     *
+     * \see freeSPI()
      */
-    inline void static SPItransfer(uint8_t data);
+    void static acquireSPI();
+
+    /** \brief
+     * Frees the SPI bus for use.
+     *
+     * \see acquireSPI();
+     */
+    void static freeSPI();
+
+    /** \brief
+     * Transfer a byte over SPI.
+     *
+     * \param data The byte to be sent over SPI.
+     *
+     * \details
+     * Transfer one byte over the SPI bus and wait for the transfer to
+     * complete. The SPI bus should first be acquired before sending.
+     *
+     * \see acquireSPI() freeSPI()
+     */
+    void static SPITransfer(uint8_t data);
+    inline void static SPItransfer(uint8_t data) { SPITransfer(data); }  // For compatibility
 
     /** \brief
      * Turn the display off.
@@ -460,7 +497,7 @@ class Arduboy2Core
      * display (the top left) when it increments past the end (lower right).
      *
      * The least significant bit represents the top pixel in the column.
-     * A bit set to 1 is lit, 0 is unlit.
+     * A bit set to 1 is lit, 0 is unlit (background).
      *
      * Example:
      *
@@ -619,7 +656,8 @@ class Arduboy2Core
      * Sending improper commands to the display can place it into invalid or
      * unexpected states, possibly even causing physical damage.
      */
-    void static sendLCDCommand(uint8_t command);
+    void static sendDisplayCommand(uint8_t command);
+    inline void static sendLCDCommand(uint8_t command) { sendDisplayCommand(command); }  // For compatibility
 
     /** \brief
      * Set the light output of the RGB LED.
@@ -788,7 +826,7 @@ class Arduboy2Core
   protected:
     // internals
     void static bootSPI();
-    void static bootTFT();
+    void static bootDisplay();
     void static bootPins();
     void static bootPowerSaving();
 };

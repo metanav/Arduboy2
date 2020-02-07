@@ -74,7 +74,7 @@ void Arduboy2Base::flashlight()
     return;
   }
 
-  sendLCDCommand(ST77XX_DISPOFF); // smaller than allPixelsOn()
+  sendDisplayCommand(ST77XX_DISPOFF); // smaller than allPixelsOn()
 
   while (true) {
     idle();
