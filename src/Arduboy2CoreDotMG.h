@@ -95,8 +95,6 @@
 #define WIDTH       128
 #define HEIGHT      64
 
-#define COLOR(R, G, B) ((((R) & 0xF) << 8) | (((G) & 0xF) << 4) | ((B) & 0xF))
-
 #define ST77XX_NOP        0x00
 #define ST77XX_SWRESET    0x01
 #define ST77XX_RDDID      0x04
@@ -142,6 +140,9 @@
 #define ST77XX_MAGENTA    0x0F0F
 #define ST77XX_YELLOW     0x0FF0
 #define	ST77XX_ORANGE     0x0F40
+
+#define COLOR(R, G, B) ((((R) & 0xF) << 8) | (((G) & 0xF) << 4) | ((B) & 0xF))
+#define INVERT(color)  (ST77XX_WHITE - (color))
 
 // Some register settings
 #define ST7735_MADCTL_BGR 0x08
