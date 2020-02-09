@@ -74,7 +74,7 @@ void Arduboy2Base::flashlight()
     return;
   }
 
-  sendDisplayCommand(ST77XX_DISPOFF); // smaller than allPixelsOn()
+  allPixelsOn(true);
 
   while (true) {
     idle();
@@ -264,11 +264,6 @@ bool Arduboy2Base::nextFrame()
   frameCount++;
 
   return true;
-}
-
-bool Arduboy2Base::nextFrameDEV()
-{
-  return nextFrame();
 }
 
 int Arduboy2Base::cpuLoad()

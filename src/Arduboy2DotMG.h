@@ -238,6 +238,8 @@ class Arduboy2Base : public Arduboy2Core
 
   /** \brief
    * Turn the RGB LED and display fully on to act as a small flashlight/torch.
+   * Disables current game and instead waits forever. Similarly to `safeMode()`,
+   * useful if you don't want your game to run while uploading.
    *
    * \details
    * Checks if the UP button is pressed and if so turns the RGB LED and all
@@ -249,10 +251,6 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \note
    * \parblock
-   * This function also originally contained code to address a problem with
-   * uploading new sketches. However, this is not as necessary for the dotMG,
-   * as the dotMG is ATmega328P-based.
-   *
    * For sketches that use `boot()` instead of `begin()`, it is recommended
    * that a call to `flashlight()` be included after calling `boot()`. If
    * program space is limited, `safeMode()` can be used instead of
@@ -835,25 +833,13 @@ class Arduboy2Base : public Arduboy2Core
    */
   bool nextFrame();
 
-// TODO: Update these docs
   /** \brief
-   * Indicate that it's time to render the next frame, and visually indicate
-   * if the code is running slower than the desired frame rate.
-   * **FOR USE DURING DEVELOPMENT**
+   * Originally intended to visually indicate if the code is running slower than
+   * the desired frame rate by lighting the TX LED. This feature is not
+   * implemented for dotMG as the TX LED is not controlled programmatically.
+   * Therefore, it behaves exactly the same as `nextFrame()`.
    *
    * \return `true` if it's time for the next frame.
-   *
-   * \details
-   * This function is intended to be used in place of `nextFrame()` during the
-   * development of a sketch. It does the same thing as `nextFrame()` but
-   * additionally will light the yellow TX LED (at the bottom, to the left
-   * of the USB connector) whenever a frame takes longer to generate than the
-   * time allotted per frame, as determined by the `setFrameRate()` function.
-   *
-   * Therefore, whenever the TX LED comes on (while not communicating over
-   * USB), it indicates that the sketch is running slower than the desired
-   * rate set by `setFrameRate()`. In this case the developer may wish to set
-   * a slower frame rate, or reduce or optimize the code for such frames.
    *
    * \note
    * Once a sketch is ready for release, it would be expected that
@@ -861,7 +847,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \see nextFrame() cpuLoad() setFrameRate()
    */
-  bool nextFrameDEV();
+  inline bool nextFrameDEV() { return nextFrame(); }
 
   /** \brief
    * Indicate if the specified number of frames has elapsed.

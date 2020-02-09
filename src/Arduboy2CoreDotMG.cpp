@@ -196,16 +196,6 @@ void Arduboy2Core::safeMode()
 
 /* Power Management */
 
-void Arduboy2Core::idle()
-{
-  // Not implemented
-}
-
-void Arduboy2Core::bootPowerSaving()
-{
-  // Not implemented
-}
-
 // Shut down the display
 void Arduboy2Core::displayOff()
 {
@@ -536,31 +526,7 @@ void Arduboy2Core::delayShort(uint16_t ms)
 void Arduboy2Core::exitToBootloader()
 {
   noInterrupts();
-  while(true) {}
-}
-
-void Arduboy2Core::mainNoUSB()
-{
-  init();
-
-  pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
-
-  // Delay to give time for the pin to be pulled high if it was floating
-  delayShort(10);
-
-  // If the down button is pressed
-  if (!digitalRead(PIN_BUTTON_DOWN)) {
-    exitToBootloader();
-  }
-
-  // The remainder is a copy of the Arduino main() function with the
-  // USB code and other unneeded code removed.
-
-  setup();
-
-  for (;;) {
-    loop();
-  }
+  while (true);
 }
 
 

@@ -167,16 +167,6 @@
 #define ST7735_GMCTRN1    0xE1
 // --------------------
 
-/** \brief
- * This macro was originally intended to eliminate the USB stack to free up
- * code space. However, USB code elimination is not implemented for dotMG.
- * It is kept here (without a definition) simply for code compatibility
- * purposes.
- *
- * \see Arduboy2Core::exitToBootloader() Arduboy2Core::mainNoUSB()
- */
-#define ARDUBOY_NO_USB
-
 
 /** \brief
  * Lower level functions generally dealing directly with the hardware.
@@ -200,16 +190,10 @@ class Arduboy2Core
     Arduboy2Core();
 
     /** \brief
-     * Idle the CPU to save power.
-     *
-     * \details
-     * This puts the CPU in _idle_ sleep mode. You should call this as often
-     * as you can for the best power savings. The timer 0 overflow interrupt
-     * will wake up the chip every 1ms, so even at 60 FPS a well written
-     * app should be able to sleep maybe half the time in between rendering
-     * it's own frames.
+     * Originally intended to save power on the original Arduboy. It is not
+     * necessary for dotMG, so this function does nothing.
      */
-    void static idle();
+    void static idle() {}
 
     /** \brief
      * Put the display into data mode.
@@ -777,8 +761,9 @@ class Arduboy2Core
     void static boot();
 
     /** \brief
-     * Originally added to resolve code upload issues, this is not as
-     * necessary for the dotMG, as the dotMG is ATmega328P-based.
+     * Disables current game and instead waits forever at a blank screen.
+     * Similarly to `flashlight()`, useful if you don't want your game to
+     * run while uploading.
      *
      * \details
      * If the UP button is held when this function is entered, the RGB LED
@@ -806,30 +791,18 @@ class Arduboy2Core
     void static delayShort(uint16_t ms) __attribute__ ((noinline));
 
     /** \brief
-     * This function was originally intented for use with the ARDUBOY_NO_USB
-     * macro, to allow USB uploads when USB code was eliminated. Since dotMG
-     * doesn't implement USB code elimination, this function has no meaningful
-     * use or implementation. It simply disables interrupts and waits forever.
-     * \see ARDUBOY_NO_USB mainNoUSB()
+     * This function was originally intented to allow USB uploads when USB code
+     * was eliminated on the original Arduboy. Since this isn't necessary on
+     * dotMG, it simply disables interrupts and waits forever.
      */
     void static exitToBootloader();
-
-// TODO: fix this function
-    /** \brief
-     * This function was originally intended to eliminate the USB stack to free up
-     * code space. However, it is not implemented for dotMG, as dotMG does not
-     * implement USB code elimination.
-     *
-     * \see ARDUBOY_NO_USB exitToBootloader()
-     */
-    void static mainNoUSB();
 
   protected:
     // internals
     void static bootSPI();
     void static bootDisplay();
     void static bootPins();
-    void static bootPowerSaving();
+    void static bootPowerSaving() {}
 };
 
 #endif
