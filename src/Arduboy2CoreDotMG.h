@@ -9,16 +9,83 @@
 
 #include <Arduino.h>
 
-// main hardware compile flags
+// ----- Helpful values/macros -----
 
-// ----- Arduboy pins -----
+// Button values
 
-#define IO_PORT             (&(PORT->Group[PORTA]))
+#define A_BUTTON_BIT        0
+#define A_BUTTON            bit(A_BUTTON_BIT)
+
+#define B_BUTTON_BIT        1
+#define B_BUTTON            bit(B_BUTTON_BIT)
+
+#define UP_BUTTON_BIT       2
+#define UP_BUTTON           bit(UP_BUTTON_BIT)
+
+#define DOWN_BUTTON_BIT     3
+#define DOWN_BUTTON         bit(DOWN_BUTTON_BIT)
+
+#define LEFT_BUTTON_BIT     4
+#define LEFT_BUTTON         bit(LEFT_BUTTON_BIT)
+
+#define RIGHT_BUTTON_BIT    5
+#define RIGHT_BUTTON        bit(RIGHT_BUTTON_BIT)
+
+#define START_BUTTON_BIT    6
+#define START_BUTTON        bit(START_BUTTON_BIT)
+
+#define SELECT_BUTTON_BIT   7
+#define SELECT_BUTTON       bit(SELECT_BUTTON_BIT)
+
+// LED values
+
+#define RED_LED    0
+#define GREEN_LED  1
+#define BLUE_LED   2
+
+#define RGB_OFF    0
+#define RGB_ON     1
+
+// Display values
+
+#define WIDTH       128
+#define HEIGHT      64
+#define TFT_WIDTH   160
+#define TFT_HEIGHT  128
+
+// 12-bit ('444') color values
+
+#define COLOR_BLACK      0x0000
+#define COLOR_WHITE      0x0FFF
+#define COLOR_GRAY       0x0AAA
+#define COLOR_RED        0x0F00
+#define COLOR_GREEN      0x00F0
+#define COLOR_BLUE       0x000F
+#define COLOR_CYAN       0x00FF
+#define COLOR_MAGENTA    0x0F0F
+#define COLOR_YELLOW     0x0FF0
+#define	COLOR_ORANGE     0x0F40
+
+// Builds a 12-bit color value from individual 4-bit RGB channel values
+#define COLOR(r, g, b) ((((r) & 0xF) << 8) | (((g) & 0xF) << 4) | ((b) & 0xF))
+
+// Computes the complement of a color
+#define INVERT(color)  (COLOR_WHITE - (color))
+
+
+// ----- SPI/DMA configuration -----
+
+#define SPI_24MHZ_CLOCK     // Comment out to default to 12 MHz
 
 #define SPI_SETTINGS        SPISettings(12000000, MSBFIRST, SPI_MODE0)
 #define SPI_SERCOM          SERCOM1
 #define DMA_TRIGGER_SRC     SERCOM1_DMAC_ID_TX
 #define DMA_CHAN            0u
+
+
+// ----- Pins -----
+
+#define IO_PORT             (&(PORT->Group[PORTA]))
 
 #define PIN_TFT_CS          16
 #define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
@@ -56,44 +123,10 @@
 #define PIN_BUTTON_SELECT   15
 #define MASK_BUTTON_SELECT  digitalPinToBitMask(PIN_BUTTON_SELECT)
 
-#define A_BUTTON_BIT        0
-#define A_BUTTON            bit(A_BUTTON_BIT)
-
-#define B_BUTTON_BIT        1
-#define B_BUTTON            bit(B_BUTTON_BIT)
-
-#define UP_BUTTON_BIT       2
-#define UP_BUTTON           bit(UP_BUTTON_BIT)
-
-#define DOWN_BUTTON_BIT     3
-#define DOWN_BUTTON         bit(DOWN_BUTTON_BIT)
-
-#define LEFT_BUTTON_BIT     4
-#define LEFT_BUTTON         bit(LEFT_BUTTON_BIT)
-
-#define RIGHT_BUTTON_BIT    5
-#define RIGHT_BUTTON        bit(RIGHT_BUTTON_BIT)
-
-#define START_BUTTON_BIT    6
-#define START_BUTTON        bit(START_BUTTON_BIT)
-
-#define SELECT_BUTTON_BIT   7
-#define SELECT_BUTTON       bit(SELECT_BUTTON_BIT)
-
 #define PIN_SPEAKER         PIN_DAC0
 
-#define RED_LED    0
-#define GREEN_LED  1
-#define BLUE_LED   2
 
-#define RGB_OFF    0
-#define RGB_ON     1
-
-#define TFT_WIDTH   160
-#define TFT_HEIGHT  128
-
-#define WIDTH       128
-#define HEIGHT      64
+// ----- For display configuration (ST7735R) -----
 
 #define ST77XX_NOP        0x00
 #define ST77XX_SWRESET    0x01
@@ -129,22 +162,6 @@
 #define ST77XX_RDID3      0xDC
 #define ST77XX_RDID4      0xDD
 
-// Some ready-made 12-bit ('444') color settings:
-#define	ST77XX_BLACK      0x0000
-#define ST77XX_WHITE      0x0FFF
-#define ST77XX_GRAY       0x0AAA
-#define ST77XX_RED        0x0F00
-#define ST77XX_GREEN      0x00F0
-#define ST77XX_BLUE       0x000F
-#define ST77XX_CYAN       0x00FF
-#define ST77XX_MAGENTA    0x0F0F
-#define ST77XX_YELLOW     0x0FF0
-#define	ST77XX_ORANGE     0x0F40
-
-#define COLOR(R, G, B) ((((R) & 0xF) << 8) | (((G) & 0xF) << 4) | ((B) & 0xF))
-#define INVERT(color)  (ST77XX_WHITE - (color))
-
-// Some register settings
 #define ST7735_MADCTL_BGR 0x08
 #define ST7735_MADCTL_MH  0x04
 
@@ -165,6 +182,7 @@
 
 #define ST7735_GMCTRP1    0xE0
 #define ST7735_GMCTRN1    0xE1
+
 // --------------------
 
 

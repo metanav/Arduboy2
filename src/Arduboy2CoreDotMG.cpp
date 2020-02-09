@@ -7,10 +7,10 @@
 #include "Arduboy2CoreDotMG.h"
 #include <SPI.h>
 
-static uint16_t borderLineColor = ST77XX_GRAY;
-static uint16_t borderFillColor = ST77XX_BLACK;
-static uint16_t pixelColor = ST77XX_WHITE;
-static uint16_t bgColor = ST77XX_BLACK;
+static uint16_t borderLineColor = COLOR_GRAY;
+static uint16_t borderFillColor = COLOR_BLACK;
+static uint16_t pixelColor = COLOR_WHITE;
+static uint16_t bgColor = COLOR_BLACK;
 static uint8_t MADCTL = ST77XX_MADCTL_MV | ST77XX_MADCTL_MY;
 static uint8_t LEDs[] = {0, 0, 0};
 static bool inverted = false;
@@ -158,8 +158,15 @@ void Arduboy2Core::beginDisplaySPI()
   *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
   SPI.beginTransaction(SPI_SETTINGS);
 
-  // TODO: set to SPI clock to 24MHz?
-  // SPI_SERCOM->SPI.BAUD.reg = 0;  // 24 Mbps
+// The SPISettings class won't let the frequency go above 12MHz,
+// so we take matters into our own hands ;)
+#ifdef SPI_24MHZ_CLOCK
+  while(SPI_SERCOM->SPI.SYNCBUSY.bit.ENABLE);
+  SPI_SERCOM->SPI.CTRLA.bit.ENABLE = 0;
+  SPI_SERCOM->SPI.BAUD.reg = 0;  // 24 Mbps, per SAMD21 data sheet
+  SPI_SERCOM->SPI.CTRLA.bit.ENABLE = 1;
+  while(SPI_SERCOM->SPI.SYNCBUSY.bit.ENABLE);
+#endif
 }
 
 void Arduboy2Core::endDisplaySPI()
