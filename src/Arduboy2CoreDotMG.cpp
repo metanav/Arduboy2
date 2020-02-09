@@ -16,12 +16,14 @@ static uint8_t LEDs[] = {0, 0, 0};
 static bool inverted = false;
 static bool borderDrawn = false;
 
-static const int frameBufLen = WIDTH*HEIGHT*12/8; // 12 bits/px, 8 bits/byte
+#define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
+static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
 static uint8_t *frameBuf = new uint8_t[frameBufLen];
 static volatile bool usingSPI;
 
 // Forward declarations
 static void setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+static void drawRegion(uint16_t color, uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
 static void drawBorder();
 static void drawLEDs();
 static void initDMA();
@@ -309,7 +311,6 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 
   setWriteRegion();
   startDMA(frameBuf, frameBufLen);
-  // endDisplaySPI() called by IRQ handler after DMA completes
 
   if (clear)
     memset(image, 0, WIDTH*HEIGHT/8);
@@ -317,18 +318,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 
 void Arduboy2Core::blank()
 {
-  beginDisplaySPI();
-
-  for (int i = 0; i < frameBufLen; i += 3)
-  {
-    frameBuf[i] = bgColor >> 4;
-    frameBuf[i + 1] = ((bgColor & 0xF) << 4) | (bgColor >> 8);
-    frameBuf[i + 2] = bgColor;
-  }
-
-  setWriteRegion();
-  startDMA(frameBuf, frameBufLen);
-  // endDisplaySPI() called by IRQ handler after DMA completes
+  drawRegion(bgColor);
 }
 
 void Arduboy2Core::sendDisplayCommand(uint8_t command)
@@ -355,6 +345,20 @@ static void setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
   Arduboy2Core::sendDisplayCommand(ST77XX_RAMWR);  //  Initialize write to display RAM
 }
 
+static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
+{
+  Arduboy2Core::beginDisplaySPI();
+  int numBytes = BYTES_FOR_REGION(width, height);
+  setWriteRegion(x, y, width, height);
+  for (int i = 0; i < numBytes; i += 3)
+  {
+    frameBuf[i] = color >> 4;
+    frameBuf[i+1] = ((color & 0xF) << 4) | (color >> 8);
+    frameBuf[i+2] = color;
+  }
+  startDMA(frameBuf, numBytes);
+}
+
 static void drawBorder()
 {
   const uint8_t innerGap = 1;
@@ -362,111 +366,25 @@ static void drawBorder()
   const uint8_t windowHeight = HEIGHT+innerGap*2;
   const uint8_t marginX = (TFT_WIDTH-windowWidth)/2;
   const uint8_t marginY = (TFT_HEIGHT-windowHeight)/2;
+  int numBytes;  // Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
 
-  // draw border fill
+  // Draw border fill
+  drawRegion(borderFillColor, 0, 0, TFT_WIDTH, marginY-1);
+  drawRegion(borderFillColor, 0, TFT_HEIGHT-(marginY-1), TFT_WIDTH, marginY-1);
+  drawRegion(borderFillColor, 0, marginY-1, marginX-1, windowHeight+4);
+  drawRegion(borderFillColor, TFT_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
 
-  Arduboy2Core::beginDisplaySPI();
+  // Draw border lines
+  drawRegion(borderLineColor, marginX-1, marginY-1, windowWidth+2, 1);
+  drawRegion(borderLineColor, marginX-1, TFT_HEIGHT-marginY, windowWidth+2, 1);
+  drawRegion(borderLineColor, marginX-1, marginY, 1, windowHeight);
+  drawRegion(borderLineColor, TFT_WIDTH-marginX, marginY, 1, windowHeight);
 
-  setWriteRegion(0, 0, TFT_WIDTH, marginY-1);
-  for (int i = 0; i < (TFT_WIDTH*(marginY-1))/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderFillColor >> 4);
-    Arduboy2Core::SPITransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
-    Arduboy2Core::SPITransfer(borderFillColor);
-  }
-
-  setWriteRegion(0, TFT_HEIGHT-(marginY-1), TFT_WIDTH, marginY-1);
-  for (int i = 0; i < (TFT_WIDTH*(marginY-1))/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderFillColor >> 4);
-    Arduboy2Core::SPITransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
-    Arduboy2Core::SPITransfer(borderFillColor);
-  }
-
-  setWriteRegion(0, marginY-1, marginX-1, windowHeight+4);
-  for (int i = 0; i < ((marginX-1)*(windowHeight+4))/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderFillColor >> 4);
-    Arduboy2Core::SPITransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
-    Arduboy2Core::SPITransfer(borderFillColor);
-  }
-
-  setWriteRegion(TFT_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
-  for (int i = 0; i < ((marginX-1)*(windowHeight+4))/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderFillColor >> 4);
-    Arduboy2Core::SPITransfer(((borderFillColor & 0xF) << 4) | (borderFillColor >> 8));
-    Arduboy2Core::SPITransfer(borderFillColor);
-  }
-
-  // draw border lines
-
-  setWriteRegion(marginX-1, marginY-1, windowWidth+2, 1);
-  for (int i = 0; i < (windowWidth+2)/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderLineColor >> 4);
-    Arduboy2Core::SPITransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
-    Arduboy2Core::SPITransfer(borderLineColor);
-  }
-
-  setWriteRegion(marginX-1, TFT_HEIGHT-marginY, windowWidth+2, 1);
-  for (int i = 0; i < (windowWidth+2)/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderLineColor >> 4);
-    Arduboy2Core::SPITransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
-    Arduboy2Core::SPITransfer(borderLineColor);
-  }
-
-  setWriteRegion(marginX-1, marginY, 1, windowHeight);
-  for (int i = 0; i < windowHeight/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderLineColor >> 4);
-    Arduboy2Core::SPITransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
-    Arduboy2Core::SPITransfer(borderLineColor);
-  }
-
-  setWriteRegion(TFT_WIDTH-marginX, marginY, 1, windowHeight);
-  for (int i = 0; i < windowHeight/2; i++)
-  {
-    Arduboy2Core::SPITransfer(borderLineColor >> 4);
-    Arduboy2Core::SPITransfer(((borderLineColor & 0xF) << 4) | (borderLineColor >> 8));
-    Arduboy2Core::SPITransfer(borderLineColor);
-  }
-
-  // draw gap around display area
-  setWriteRegion(marginX, marginY, windowWidth, innerGap);
-  for (int i = 0; i < (windowWidth*innerGap)/2; i++)
-  {
-    Arduboy2Core::SPITransfer(bgColor >> 4);
-    Arduboy2Core::SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    Arduboy2Core::SPITransfer(bgColor);
-  }
-
-  setWriteRegion(marginX, TFT_HEIGHT-marginY-innerGap, windowWidth, innerGap);
-  for (int i = 0; i < (windowWidth*innerGap)/2; i++)
-  {
-    Arduboy2Core::SPITransfer(bgColor >> 4);
-    Arduboy2Core::SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    Arduboy2Core::SPITransfer(bgColor);
-  }
-
-  setWriteRegion(marginX, marginY+innerGap, innerGap, HEIGHT);
-  for (int i = 0; i < HEIGHT*innerGap/2; i++)
-  {
-    Arduboy2Core::SPITransfer(bgColor >> 4);
-    Arduboy2Core::SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    Arduboy2Core::SPITransfer(bgColor);
-  }
-
-  setWriteRegion(TFT_WIDTH-marginX-innerGap, marginY+innerGap, innerGap, HEIGHT);
-  for (int i = 0; i < HEIGHT*innerGap/2; i++)
-  {
-    Arduboy2Core::SPITransfer(bgColor >> 4);
-    Arduboy2Core::SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    Arduboy2Core::SPITransfer(bgColor);
-  }
-
-  Arduboy2Core::endDisplaySPI();
+  // Draw gap around display area
+  drawRegion(bgColor, marginX, marginY, windowWidth, innerGap);
+  drawRegion(bgColor, marginX, TFT_HEIGHT-marginY-innerGap, windowWidth, innerGap);
+  drawRegion(bgColor, marginX, marginY+innerGap, innerGap, HEIGHT);
+  drawRegion(bgColor, TFT_WIDTH-marginX-innerGap, marginY+innerGap, innerGap, HEIGHT);
 
   borderDrawn = true;
 }
@@ -574,7 +492,10 @@ static void drawLEDs()
   const uint8_t blue = inverted ? 0xFF - LEDs[BLUE_LED] : LEDs[BLUE_LED];
 
   Arduboy2Core::beginDisplaySPI();
-  int numBytes = (TFT_WIDTH*4)*12/8; // 12 bits/px, 8 bits/byte
+
+  int numBytes = BYTES_FOR_REGION(TFT_WIDTH, 4);
+  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
+
   for (int i = 0; i < numBytes; i += 3)
   {
     const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF, (blue*0xF)/0xFF);
@@ -585,9 +506,7 @@ static void drawLEDs()
     frameBuf[i + 2] = color;
   }
 
-  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
   startDMA(frameBuf, numBytes);
-  // endDisplaySPI() called by IRQ handler after DMA completes
 }
 
 
