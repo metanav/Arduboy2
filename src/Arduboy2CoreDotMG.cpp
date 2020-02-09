@@ -319,15 +319,16 @@ void Arduboy2Core::blank()
 {
   beginDisplaySPI();
 
-  setWriteRegion();
-  for (int i = 0; i < WIDTH*HEIGHT/2; i++)
+  for (int i = 0; i < frameBufLen; i += 3)
   {
-    SPITransfer(bgColor >> 4);
-    SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    SPITransfer(bgColor);
+    frameBuf[i] = bgColor >> 4;
+    frameBuf[i + 1] = ((bgColor & 0xF) << 4) | (bgColor >> 8);
+    frameBuf[i + 2] = bgColor;
   }
 
-  endDisplaySPI();
+  setWriteRegion();
+  startDMA(frameBuf, frameBufLen);
+  // endDisplaySPI() called by IRQ handler after DMA completes
 }
 
 void Arduboy2Core::sendDisplayCommand(uint8_t command)
@@ -709,11 +710,13 @@ void DMAC_Handler()
   DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
   if (DMAC->CHINTFLAG.bit.TCMPL)
   {
-    DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);  //disable DMA to allow lib SPI
+    // Disable DMA
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
     DMAC->CHCTRLA.bit.ENABLE = 0;
 
-    DMAC->CHINTENCLR.bit.TCMPL = 1;  // clear interrupt flag
-
     Arduboy2Core::endDisplaySPI();
+
+    // Clear interrupt flag
+    DMAC->CHINTENCLR.bit.TCMPL = 1;
   }
 }
