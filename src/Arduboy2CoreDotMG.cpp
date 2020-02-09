@@ -577,7 +577,7 @@ static void drawLEDs()
   int numBytes = (TFT_WIDTH*4)*12/8; // 12 bits/px, 8 bits/byte
   for (int i = 0; i < numBytes; i += 3)
   {
-    const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF , (blue*0xF)/0xFF);
+    const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF, (blue*0xF)/0xFF);
 
     // Reuse frameBuf since numBytes should be less than frameBufLen
     frameBuf[i] = color >> 4;
