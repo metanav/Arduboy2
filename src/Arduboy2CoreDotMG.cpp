@@ -574,17 +574,20 @@ static void drawLEDs()
   const uint8_t blue = inverted ? 0xFF - LEDs[BLUE_LED] : LEDs[BLUE_LED];
 
   Arduboy2Core::beginDisplaySPI();
-
-  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
-  for (int i = 0; i < (TFT_WIDTH*5)/2*2; i++)
+  int numBytes = (TFT_WIDTH*4)*12/8; // 12 bits/px, 8 bits/byte
+  for (int i = 0; i < numBytes; i += 3)
   {
     const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF , (blue*0xF)/0xFF);
-    Arduboy2Core::SPITransfer(color >> 4);
-    Arduboy2Core::SPITransfer(((color & 0xF) << 4) | (color >> 8));
-    Arduboy2Core::SPITransfer(color);
+
+    // Reuse frameBuf since numBytes should be less than frameBufLen
+    frameBuf[i] = color >> 4;
+    frameBuf[i + 1] = ((color & 0xF) << 4) | (color >> 8);
+    frameBuf[i + 2] = color;
   }
 
-  Arduboy2Core::endDisplaySPI();
+  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
+  startDMA(frameBuf, numBytes);
+  // endDisplaySPI() called by IRQ handler after DMA completes
 }
 
 
