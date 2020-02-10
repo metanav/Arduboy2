@@ -50,8 +50,8 @@
 
 #define WIDTH       128
 #define HEIGHT      64
-#define TFT_WIDTH   160
-#define TFT_HEIGHT  128
+#define DISP_WIDTH   160
+#define DISP_HEIGHT  128
 
 // 12-bit ('444') color values
 
@@ -87,14 +87,11 @@
 
 #define IO_PORT             (&(PORT->Group[PORTA]))
 
-#define PIN_TFT_CS          16
-#define MASK_TFT_CS         digitalPinToBitMask(PIN_TFT_CS)
+#define PIN_DISP_SS         16
+#define MASK_DISP_SS        digitalPinToBitMask(PIN_DISP_SS)
 
-#define PIN_TFT_DC          17
-#define MASK_TFT_DC         digitalPinToBitMask(PIN_TFT_DC)
-
-#define PIN_TFT_RST         18
-#define MASK_TFT_RST        digitalPinToBitMask(PIN_TFT_RST)
+#define PIN_DISP_DC         17
+#define MASK_DISP_DC        digitalPinToBitMask(PIN_DISP_DC)
 
 #define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_MOSI)
 #define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_SCK)
@@ -236,9 +233,6 @@ class Arduboy2Core
      * \details
      * When placed in command mode, data that is sent to the display will be
      * treated as commands.
-     *
-     * See the ST7735R controller and TFT display documents for available
-     * commands and command sequences.
      *
      * \note
      * This is a low level function that is not intended for general use in a

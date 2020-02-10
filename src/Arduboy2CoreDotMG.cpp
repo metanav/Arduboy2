@@ -22,8 +22,8 @@ static uint8_t *frameBuf = new uint8_t[frameBufLen];
 static volatile bool usingSPI;
 
 // Forward declarations
-static void setWriteRegion(uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
-static void drawRegion(uint16_t color, uint8_t x = (TFT_WIDTH-WIDTH)/2, uint8_t y = (TFT_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+static void drawRegion(uint16_t color, uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
 static void drawBorder();
 static void drawLEDs();
 static void initDMA();
@@ -53,15 +53,9 @@ void Arduboy2Core::bootPins()
 
 void Arduboy2Core::bootDisplay()
 {
-  pinMode(PIN_TFT_CS, OUTPUT);
-  pinMode(PIN_TFT_DC, OUTPUT);
-  pinMode(PIN_TFT_RST, OUTPUT);
-  digitalWrite(PIN_TFT_CS, HIGH);
-
-  // Reset display
-  delayShort(5);  // Let display stay in reset
-  digitalWrite(PIN_TFT_RST, HIGH); // Bring out of reset
-  delayShort(5);
+  pinMode(PIN_DISP_SS, OUTPUT);
+  pinMode(PIN_DISP_DC, OUTPUT);
+  digitalWrite(PIN_DISP_SS, HIGH);
 
   beginDisplaySPI();
 
@@ -119,8 +113,8 @@ void Arduboy2Core::bootDisplay()
   SPITransfer(0x10);
 
   // Clear entire display
-  setWriteRegion(0, 0, TFT_WIDTH, TFT_HEIGHT);
-  for (int i = 0; i < TFT_WIDTH*TFT_HEIGHT/2; i++) {
+  setWriteRegion(0, 0, DISP_WIDTH, DISP_HEIGHT);
+  for (int i = 0; i < DISP_WIDTH*DISP_HEIGHT/2; i++) {
     SPITransfer(bgColor >> 4);
     SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
     SPITransfer(bgColor);
@@ -137,12 +131,12 @@ void Arduboy2Core::bootDisplay()
 
 void Arduboy2Core::displayDataMode()
 {
-  *portOutputRegister(IO_PORT) |= MASK_TFT_DC;
+  *portOutputRegister(IO_PORT) |= MASK_DISP_DC;
 }
 
 void Arduboy2Core::displayCommandMode()
 {
-  *portOutputRegister(IO_PORT) &= ~MASK_TFT_DC;
+  *portOutputRegister(IO_PORT) &= ~MASK_DISP_DC;
 }
 
 // Initialize the SPI interface for the display
@@ -155,7 +149,7 @@ void Arduboy2Core::bootSPI()
 void Arduboy2Core::beginDisplaySPI()
 {
   acquireSPI();
-  *portOutputRegister(IO_PORT) &= ~MASK_TFT_CS;
+  *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
   SPI.beginTransaction(SPI_SETTINGS);
 
 // The SPISettings class won't let the frequency go above 12MHz,
@@ -172,7 +166,7 @@ void Arduboy2Core::beginDisplaySPI()
 void Arduboy2Core::endDisplaySPI()
 {
   SPI.endTransaction();
-  *portOutputRegister(IO_PORT) |= MASK_TFT_CS;
+  *portOutputRegister(IO_PORT) |= MASK_DISP_SS;
   freeSPI();
 }
 
@@ -361,27 +355,27 @@ static void drawBorder()
   const uint8_t innerGap = 1;
   const uint8_t windowWidth = WIDTH+innerGap*2;
   const uint8_t windowHeight = HEIGHT+innerGap*2;
-  const uint8_t marginX = (TFT_WIDTH-windowWidth)/2;
-  const uint8_t marginY = (TFT_HEIGHT-windowHeight)/2;
+  const uint8_t marginX = (DISP_WIDTH-windowWidth)/2;
+  const uint8_t marginY = (DISP_HEIGHT-windowHeight)/2;
   int numBytes;  // Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
 
   // Draw border fill
-  drawRegion(borderFillColor, 0, 0, TFT_WIDTH, marginY-1);
-  drawRegion(borderFillColor, 0, TFT_HEIGHT-(marginY-1), TFT_WIDTH, marginY-1);
+  drawRegion(borderFillColor, 0, 0, DISP_WIDTH, marginY-1);
+  drawRegion(borderFillColor, 0, DISP_HEIGHT-(marginY-1), DISP_WIDTH, marginY-1);
   drawRegion(borderFillColor, 0, marginY-1, marginX-1, windowHeight+4);
-  drawRegion(borderFillColor, TFT_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
+  drawRegion(borderFillColor, DISP_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
 
   // Draw border lines
   drawRegion(borderLineColor, marginX-1, marginY-1, windowWidth+2, 1);
-  drawRegion(borderLineColor, marginX-1, TFT_HEIGHT-marginY, windowWidth+2, 1);
+  drawRegion(borderLineColor, marginX-1, DISP_HEIGHT-marginY, windowWidth+2, 1);
   drawRegion(borderLineColor, marginX-1, marginY, 1, windowHeight);
-  drawRegion(borderLineColor, TFT_WIDTH-marginX, marginY, 1, windowHeight);
+  drawRegion(borderLineColor, DISP_WIDTH-marginX, marginY, 1, windowHeight);
 
   // Draw gap around display area
   drawRegion(bgColor, marginX, marginY, windowWidth, innerGap);
-  drawRegion(bgColor, marginX, TFT_HEIGHT-marginY-innerGap, windowWidth, innerGap);
+  drawRegion(bgColor, marginX, DISP_HEIGHT-marginY-innerGap, windowWidth, innerGap);
   drawRegion(bgColor, marginX, marginY+innerGap, innerGap, HEIGHT);
-  drawRegion(bgColor, TFT_WIDTH-marginX-innerGap, marginY+innerGap, innerGap, HEIGHT);
+  drawRegion(bgColor, DISP_WIDTH-marginX-innerGap, marginY+innerGap, innerGap, HEIGHT);
 
   borderDrawn = true;
 }
@@ -490,8 +484,8 @@ static void drawLEDs()
 
   Arduboy2Core::beginDisplaySPI();
 
-  int numBytes = BYTES_FOR_REGION(TFT_WIDTH, 4);
-  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : TFT_HEIGHT-4, TFT_WIDTH, 4);
+  int numBytes = BYTES_FOR_REGION(DISP_WIDTH, 4);
+  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : DISP_HEIGHT-4, DISP_WIDTH, 4);
 
   for (int i = 0; i < numBytes; i += 3)
   {
