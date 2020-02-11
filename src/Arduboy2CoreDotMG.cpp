@@ -15,6 +15,9 @@ static uint8_t MADCTL = ST77XX_MADCTL_MV | ST77XX_MADCTL_MY;
 static uint8_t LEDs[] = {0, 0, 0};
 static bool inverted = false;
 static bool borderDrawn = false;
+const uint8_t borderInnerGap = 1;
+const uint8_t borderWindowWidth = WIDTH+borderInnerGap*2;
+const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 
 #define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
@@ -25,6 +28,9 @@ static volatile bool usingSPI;
 static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
 static void drawRegion(uint16_t color, uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
 static void drawBorder();
+static void drawBorderFill();
+static void drawBorderLines();
+static void drawBorderGap();
 static void drawLEDs();
 static void initDMA();
 static void startDMA(uint8_t *data, uint16_t n);
@@ -218,32 +224,6 @@ void Arduboy2Core::displayOn()
 
 /* Drawing */
 
-uint16_t Arduboy2Core::getBorderLineColor()
-{
-  return borderLineColor;
-}
-
-void Arduboy2Core::setBorderLineColor(uint16_t color)
-{
-  borderLineColor = color;
-
-  if (borderDrawn)
-    drawBorder();
-}
-
-uint16_t Arduboy2Core::getBorderFillColor()
-{
-  return borderFillColor;
-}
-
-void Arduboy2Core::setBorderFillColor(uint16_t color)
-{
-  borderFillColor = color;
-
-  if (borderDrawn)
-    drawBorder();
-}
-
 uint16_t Arduboy2Core::getPixelColor()
 {
   return pixelColor;
@@ -264,12 +244,41 @@ void Arduboy2Core::setBackgroundColor(uint16_t color)
   bgColor = color;
 
   if (borderDrawn)
-    drawBorder();
+    drawBorderGap();
 }
 
-void Arduboy2Core::paint8Pixels(uint8_t pixels)
+uint16_t Arduboy2Core::getBorderLineColor()
 {
-  // Not implemented
+  return borderLineColor;
+}
+
+void Arduboy2Core::setBorderLineColor(uint16_t color)
+{
+  borderLineColor = color;
+
+  if (borderDrawn)
+    drawBorderLines();
+}
+
+uint16_t Arduboy2Core::getBorderFillColor()
+{
+  return borderFillColor;
+}
+
+void Arduboy2Core::setBorderFillColor(uint16_t color)
+{
+  borderFillColor = color;
+
+  if (borderDrawn)
+    drawBorderFill();
+}
+
+void Arduboy2Core::setColorTheme(uint16_t pixelColor, uint16_t backgroundColor, uint16_t borderLineColor, uint16_t borderFillColor)
+{
+  setPixelColor(pixelColor);
+  setBackgroundColor(backgroundColor);
+  setBorderLineColor(borderLineColor);
+  setBorderFillColor(borderFillColor);
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
@@ -350,32 +359,60 @@ static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint
   startDMA(frameBuf, numBytes);
 }
 
-static void drawBorder()
+static uint8_t borderMarginX()
 {
-  const uint8_t innerGap = 1;
-  const uint8_t windowWidth = WIDTH+innerGap*2;
-  const uint8_t windowHeight = HEIGHT+innerGap*2;
-  const uint8_t marginX = (DISP_WIDTH-windowWidth)/2;
-  const uint8_t marginY = (DISP_HEIGHT-windowHeight)/2;
-  int numBytes;  // Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
+  return (DISP_WIDTH-borderWindowWidth)/2;
+}
 
-  // Draw border fill
+static uint8_t borderMarginY()
+{
+  return (DISP_HEIGHT-borderWindowHeight)/2;
+}
+
+// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
+static void drawBorderFill()
+{
+  const uint8_t marginX = borderMarginX();
+  const uint8_t marginY = borderMarginY();
+  int numBytes;
+
   drawRegion(borderFillColor, 0, 0, DISP_WIDTH, marginY-1);
   drawRegion(borderFillColor, 0, DISP_HEIGHT-(marginY-1), DISP_WIDTH, marginY-1);
-  drawRegion(borderFillColor, 0, marginY-1, marginX-1, windowHeight+4);
-  drawRegion(borderFillColor, DISP_WIDTH-(marginX-1), marginY-1, marginX-1, windowHeight+4);
+  drawRegion(borderFillColor, 0, marginY-1, marginX-1, borderWindowHeight+4);
+  drawRegion(borderFillColor, DISP_WIDTH-(marginX-1), marginY-1, marginX-1, borderWindowHeight+4);
+}
 
-  // Draw border lines
-  drawRegion(borderLineColor, marginX-1, marginY-1, windowWidth+2, 1);
-  drawRegion(borderLineColor, marginX-1, DISP_HEIGHT-marginY, windowWidth+2, 1);
-  drawRegion(borderLineColor, marginX-1, marginY, 1, windowHeight);
-  drawRegion(borderLineColor, DISP_WIDTH-marginX, marginY, 1, windowHeight);
+// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
+static void drawBorderLines()
+{
+  const uint8_t marginX = borderMarginX();
+  const uint8_t marginY = borderMarginY();
+  int numBytes;
 
-  // Draw gap around display area
-  drawRegion(bgColor, marginX, marginY, windowWidth, innerGap);
-  drawRegion(bgColor, marginX, DISP_HEIGHT-marginY-innerGap, windowWidth, innerGap);
-  drawRegion(bgColor, marginX, marginY+innerGap, innerGap, HEIGHT);
-  drawRegion(bgColor, DISP_WIDTH-marginX-innerGap, marginY+innerGap, innerGap, HEIGHT);
+  drawRegion(borderLineColor, marginX-1, marginY-1, borderWindowWidth+2, 1);
+  drawRegion(borderLineColor, marginX-1, DISP_HEIGHT-marginY, borderWindowWidth+2, 1);
+  drawRegion(borderLineColor, marginX-1, marginY, 1, borderWindowHeight);
+  drawRegion(borderLineColor, DISP_WIDTH-marginX, marginY, 1, borderWindowHeight);
+}
+
+// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
+static void drawBorderGap()
+{
+  const uint8_t marginX = borderMarginX();
+  const uint8_t marginY = borderMarginY();
+  int numBytes;
+
+  drawRegion(bgColor, marginX, marginY, borderWindowWidth, borderInnerGap);
+  drawRegion(bgColor, marginX, DISP_HEIGHT-marginY-borderInnerGap, borderWindowWidth, borderInnerGap);
+  drawRegion(bgColor, marginX, marginY+borderInnerGap, borderInnerGap, HEIGHT);
+  drawRegion(bgColor, DISP_WIDTH-marginX-borderInnerGap, marginY+borderInnerGap, borderInnerGap, HEIGHT);
+}
+
+static void drawBorder()
+{
+  drawBorderFill();
+  drawBorderLines();
+  drawBorderGap();
 
   borderDrawn = true;
 }
@@ -388,12 +425,9 @@ void Arduboy2Core::invert(bool inverse)
 
   inverted = inverse;
 
-  // keep LED bar color agnostic of inversion
-  drawLEDs();
-
-  beginDisplaySPI();
-  sendDisplayCommand(inverse ? ST77XX_INVON : ST77XX_INVOFF);
-  endDisplaySPI();
+  uint16_t tmp = pixelColor;
+  setPixelColor(bgColor);
+  setBackgroundColor(tmp);
 }
 
 // turn all display pixels on, ignoring buffer contents
@@ -478,10 +512,6 @@ void Arduboy2Core::digitalWriteRGB(uint8_t color, uint8_t val)
 
 static void drawLEDs()
 {
-  const uint8_t red = inverted ? 0xFF - LEDs[RED_LED] : LEDs[RED_LED];
-  const uint8_t green = inverted ? 0xFF - LEDs[GREEN_LED] : LEDs[GREEN_LED];
-  const uint8_t blue = inverted ? 0xFF - LEDs[BLUE_LED] : LEDs[BLUE_LED];
-
   Arduboy2Core::beginDisplaySPI();
 
   int numBytes = BYTES_FOR_REGION(DISP_WIDTH, 4);
@@ -489,7 +519,7 @@ static void drawLEDs()
 
   for (int i = 0; i < numBytes; i += 3)
   {
-    const uint16_t color = COLOR((red*0xF)/0xFF, (green*0xF)/0xFF, (blue*0xF)/0xFF);
+    const uint16_t color = color444::from8BitRGB(LEDs[RED_LED], LEDs[GREEN_LED], LEDs[BLUE_LED]);
 
     // Reuse frameBuf since numBytes should be less than frameBufLen
     frameBuf[i] = color >> 4;

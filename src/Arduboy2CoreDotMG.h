@@ -8,6 +8,8 @@
 #define ARDUBOY2_CORE_DOTMG_H
 
 #include <Arduino.h>
+#include "themes/themes.h"
+#include "themes/colors.h"
 
 // ----- Helpful values/macros -----
 
@@ -52,25 +54,6 @@
 #define HEIGHT      64
 #define DISP_WIDTH   160
 #define DISP_HEIGHT  128
-
-// 12-bit ('444') color values
-
-#define COLOR_BLACK      0x0000
-#define COLOR_WHITE      0x0FFF
-#define COLOR_GRAY       0x0AAA
-#define COLOR_RED        0x0F00
-#define COLOR_GREEN      0x00F0
-#define COLOR_BLUE       0x000F
-#define COLOR_CYAN       0x00FF
-#define COLOR_MAGENTA    0x0F0F
-#define COLOR_YELLOW     0x0FF0
-#define	COLOR_ORANGE     0x0F40
-
-// Builds a 12-bit color value from individual 4-bit RGB channel values
-#define COLOR(r, g, b) ((((r) & 0xF) << 8) | (((g) & 0xF) << 4) | ((b) & 0xF))
-
-// Computes the complement of a color
-#define INVERT(color)  (COLOR_WHITE - (color))
 
 
 // ----- SPI/DMA configuration -----
@@ -373,83 +356,31 @@ class Arduboy2Core
     uint8_t static buttonsState();
 
     /** \brief
-     * Get the current display border line color.
-     *
-     * \details
-     * Returns a 12-bit 444-formatted RGB color value.
-     *
-     * \see setBorderLineColor() getBorderFillColor() setBorderFillColor() getPixelColor() setPixelColor()
-     * getBackgroundColor() setBackgroundColor()
-     */
-    uint16_t static getBorderLineColor();
-
-    /** \brief
-     * Set the display border line color.
-     *
-     * \details
-     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
-     * or boot().
-     *
-     * \note
-     * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 12-bit 444-formatted color value.
-     *
-     * \see getBorderLineColor() getBorderFillColor() setBorderFillColor()  getPixelColor() setPixelColor()
-     * getBackgroundColor() setBackgroundColor()
-     */
-    void static setBorderLineColor(uint16_t color);
-
-    /** \brief
-     * Get the current display border fill color.
-     *
-     * \details
-     * Returns a 12-bit 444-formatted RGB color value.
-     *
-     * \see setBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor() setPixelColor()
-     * getBackgroundColor() setBackgroundColor()
-     */
-    uint16_t static getBorderFillColor();
-
-    /** \brief
-     * Set the display border fill color.
-     *
-     * \details
-     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
-     * or boot().
-     *
-     * \note
-     * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 12-bit 444-formatted color value.
-     *
-     * \see getBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor() setPixelColor()
-     * getBackgroundColor() setBackgroundColor()
-     */
-    void static setBorderFillColor(uint16_t color);
-
-    /** \brief
      * Get the current display pixel color.
      *
      * \details
      * Returns a 12-bit 444-formatted RGB color value.
      *
      * \see setPixelColor() getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
-     * getBackgroundColor() setBackgroundColor()
+     * getBackgroundColor() setBackgroundColor() setColorTheme()
      */
     uint16_t static getPixelColor();
 
     /** \brief
      * Set the display pixel color.
      *
+     * \param color The color to set.
+     *
      * \details
-     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
-     * or boot(). Value will take effect on next call to display().
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
+     * or `boot()`. Value will take effect on next call to `paintScreen()`.
      *
      * \note
-     * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 12-bit 444-formatted color value.
+     * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
+     * color values.
      *
-     * \see getPixelColor() getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
-     * getBackgroundColor() setBackgroundColor()
+     * \see getPixelColor() getBorderLineColor() setBorderLineColor() getBorderFillColor()
+     * setBorderFillColor() getBackgroundColor() setBackgroundColor() setColorTheme()
      */
     void static setPixelColor(uint16_t color);
 
@@ -459,8 +390,8 @@ class Arduboy2Core
      * \details
      * Returns a 12-bit 444-formatted RGB color value.
      *
-     * \see setBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor() setBorderLineColor()
-     * getBorderFillColor() setBorderFillColor()
+     * \see setBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor()
+     * setBorderLineColor() getBorderFillColor() setBorderFillColor() setColorTheme()
      *
      */
     uint16_t static getBackgroundColor();
@@ -468,51 +399,118 @@ class Arduboy2Core
     /** \brief
      * Set the display background color.
      *
+     * \param color The color to set.
+     *
      * \details
-     * Color must be a 12-bit 444-formatted RGB color value. May be called before begin()
-     * or boot(). Value will take effect on next call to display().
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
+     * or `boot()`. Value will take effect on next call to `paintScreen()`.
      *
      * \note
-     * You can use the COLOR(r, g, b) macro to convert individual color channels
-     * to a 12-bit 444-formatted color value.
+     * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
+     * color values.
      *
-     * \see getBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor() setBorderLineColor()
-     * getBorderFillColor() setBorderFillColor()
+     * \see getBackgroundColor() getPixelColor() setPixelColor() getBorderLineColor()
+     * setBorderLineColor() getBorderFillColor() setBorderFillColor() setColorTheme()
      */
     void static setBackgroundColor(uint16_t color);
 
+    /** \brief
+     * Get the current display border line color.
+     *
+     * \details
+     * Returns a 12-bit 444-formatted RGB color value.
+     *
+     * \see setBorderLineColor() getBorderFillColor() setBorderFillColor() getPixelColor()
+     * setPixelColor() getBackgroundColor() setBackgroundColor() setColorTheme()
+     */
+    uint16_t static getBorderLineColor();
 
     /** \brief
-     * Paint 8 pixels vertically to the display.
+     * Set the display border line color.
+     *
+     * \param color The color to set.
+     *
+     * \details
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
+     * or `boot()`.
+     *
+     * \note
+     * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
+     * color values.
+     *
+     * \see getBorderLineColor() getBorderFillColor() setBorderFillColor() getPixelColor()
+     * setPixelColor() getBackgroundColor() setBackgroundColor() setColorTheme()
+     */
+    void static setBorderLineColor(uint16_t color);
+
+    /** \brief
+     * Get the current display border fill color.
+     *
+     * \details
+     * Returns a 12-bit 444-formatted RGB color value.
+     *
+     * \see setBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor()
+     * setPixelColor() getBackgroundColor() setBackgroundColor() setColorTheme()
+     */
+    uint16_t static getBorderFillColor();
+
+    /** \brief
+     * Set the display border fill color.
+     *
+     * \param color The color to set.
+     *
+     * \details
+     * Color must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
+     * or `boot()`.
+     *
+     * \note
+     * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
+     * color values.
+     *
+     * \see getBorderFillColor() getBorderLineColor() setBorderLineColor() getPixelColor()
+     * setPixelColor() getBackgroundColor() setBackgroundColor() setColorTheme()
+     */
+    void static setBorderFillColor(uint16_t color);
+
+
+    /** \brief
+     * Set the color theme.
+     *
+     * \param pixelColor The pixel color to set.
+     *
+     * \param backgroundColor The background color to set.
+     *
+     * \param borderLineColor The border line color to set.
+     *
+     * \param borderFillColor The border fill color to set.
+     *
+     * \details
+     * Colors must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
+     * or `boot()`. Setting will take effect on next call to `paintScreen()`.
+     *
+     * \note
+     * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
+     * color values.
+     *
+     * \see getPixelColor() setPixelColor() getBackgroundColor() setBackgroundColor()
+     * getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
+     */
+    void static setColorTheme(
+      uint16_t pixelColor = COLOR_WHITE,
+      uint16_t backgroundColor = COLOR_BLACK,
+      uint16_t borderLineColor = COLOR_GRAY,
+      uint16_t borderFillColor = COLOR_BLACK
+    );
+
+    /** \brief
+     * Originally meant to paint 8 pixels vertically to the display. This is not
+     * implemented for dotMG.
      *
      * \param pixels A byte whose bits specify a vertical column of 8 pixels.
      *
-     * \details
-     * A byte representing a vertical column of 8 pixels is written to the
-     * display at the current page and column address. The address is then
-     * incremented. The page/column address will wrap to the start of the
-     * display (the top left) when it increments past the end (lower right).
-     *
-     * The least significant bit represents the top pixel in the column.
-     * A bit set to 1 is lit, 0 is unlit (background).
-     *
-     * Example:
-     *
-     *     X = lit pixels, . = unlit pixels
-     *
-     *     blank()                          paint8Pixels() 0xFF, 0, 0xF0, 0, 0x0F
-     *     v TOP LEFT corner (8x9)          v TOP LEFT corner
-     *     . . . . . . . . (page 1)         X . . . X . . . (page 1)
-     *     . . . . . . . .                  X . . . X . . .
-     *     . . . . . . . .                  X . . . X . . .
-     *     . . . . . . . .                  X . . . X . . .
-     *     . . . . . . . .                  X . X . . . . .
-     *     . . . . . . . .                  X . X . . . . .
-     *     . . . . . . . .                  X . X . . . . .
-     *     . . . . . . . . (end of page 1)  X . X . . . . . (end of page 1)
-     *     . . . . . . . . (page 2)         . . . . . . . . (page 2)
+     * \see paintScreen()
      */
-    void static paint8Pixels(uint8_t pixels);
+    void static paint8Pixels(uint8_t pixels) {}
 
     /** \brief
      * Paints an entire image directly to the display from program memory.
@@ -521,14 +519,12 @@ class Arduboy2Core
      * contents of the display.
      *
      * \details
-     * The contents of the specified array in program memory is written to the
+     * The contents of the specified array in program memory are written to the
      * display. Each byte in the array represents a vertical column of 8 pixels
      * with the least significant bit at the top. The bytes are written starting
      * at the top left, progressing horizontally and wrapping at the end of each
      * row, to the bottom right. The size of the array must exactly match the
-     * number of pixels in the entire display.
-     *
-     * \see paint8Pixels()
+     * number of pixels in the display area.
      */
     void static paintScreen(const uint8_t *image);
 
@@ -542,17 +538,15 @@ class Arduboy2Core
      * unchanged. (optional; defaults to `false`)
      *
      * \details
-     * The contents of the specified array in RAM is written to the display.
+     * The contents of the specified array in RAM are written to the display.
      * Each byte in the array represents a vertical column of 8 pixels with
      * the least significant bit at the top. The bytes are written starting
      * at the top left, progressing horizontally and wrapping at the end of
      * each row, to the bottom right. The size of the array must exactly
-     * match the number of pixels in the entire display.
+     * match the number of pixels in the display area.
      *
      * If parameter `clear` is set to `true` the RAM array will be cleared to
      * zeros after its contents are written to the display.
-     *
-     * \see paint8Pixels()
      */
     void static paintScreen(uint8_t image[], bool clear = false);
 
@@ -566,15 +560,13 @@ class Arduboy2Core
     void static blank();
 
     /** \brief
-     * Invert the entire display or set it back to normal.
+     * Swap pixel and background colors, or set back to normal.
      *
-     * \param inverse `true` will invert the display. `false` will set the
-     * display to no-inverted.
+     * \param inverse `true` will invert the display area. `false` will set the
+     * display area to normal.
      *
      * \details
-     * Calling this function with a value of `true` will set the display to
-     * inverted mode. A pixel with a value of 0 will be on and a pixel set to 1
-     * will be off.
+     * Setting will take effect on next call to `paintScreen()`.
      *
      * Once in inverted mode, the display will remain this way
      * until it is set back to non-inverted mode by calling this function with
