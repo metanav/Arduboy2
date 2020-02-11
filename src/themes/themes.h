@@ -3,12 +3,14 @@
 
 #include "colors.h"
 
-// Builds a theme from color values, for use with `Arduboy2Core::setTheme()`
-#define THEME(pixelColor, backgroundColor, borderLineColor, borderFillColor) \
-  (pixelColor), \
-  (backgroundColor), \
-  (borderLineColor), \
-  (borderFillColor)
+// Represents the configurable colors for drawing to the screen. Colors must
+// be 12-bit 444-formatted RGB color values.
+typedef struct {
+  uint16_t pixelColor;
+  uint16_t backgroundColor;
+  uint16_t borderLineColor;
+  uint16_t borderFillColor;
+} Theme;
 
 
 // -------------
@@ -16,22 +18,32 @@
 // -------------
 
 // Default, high contrast theme
-#define THEME_DEFAULT THEME(COLOR_WHITE, COLOR_BLACK, COLOR_GRAY, COLOR_BLACK)
+#define THEME_DEFAULT { \
+  COLOR_WHITE, \
+  COLOR_BLACK, \
+  COLOR_GRAY, \
+  COLOR_BLACK, \
+}
 
 // --------------------------------------------------------------------------
 
 // Theme reminiscent of the original Nintendo Game Boy
-#define THEME_DMG     THEME(0x003, 0xAD8, 0x777, COLOR_GRAY)
+#define THEME_DMG { \
+  0x003, \
+  0xAD8, \
+  0x777, \
+  COLOR_GRAY, \
+}
 
 // --------------------------------------------------------------------------
 
 // Futuristic dark theme
-#define THEME_SOLARIZED_DARK    THEME( \
-  color444::fromHex(0xD33682), \
-  color444::fromHex(0x002B36), \
-  color444::fromHex(0x268BD2), \
-  color444::fromHex(0x073642) \
-)
+#define THEME_ELEKTRONIK { \
+  COLOR_CYAN, \
+  0x035, \
+  COLOR_MAGENTA, \
+  0x303, \
+}
 
 // --------------------------------------------------------------------------
 

@@ -476,17 +476,11 @@ class Arduboy2Core
     /** \brief
      * Set the color theme.
      *
-     * \param pixelColor The pixel color to set.
-     *
-     * \param backgroundColor The background color to set.
-     *
-     * \param borderLineColor The border line color to set.
-     *
-     * \param borderFillColor The border fill color to set.
+     * \param theme The theme to set.
      *
      * \details
-     * Colors must be a 12-bit 444-formatted RGB color value. May be called before `begin()`
-     * or `boot()`. Setting will take effect on next call to `paintScreen()`.
+     * Colors in `theme` must be 12-bit 444-formatted RGB color values. May be called before
+     * `begin()` or `boot()`. Setting will take effect on next call to `paintScreen()`.
      *
      * \note
      * The file `colors.h` contains helpful utilities for creating 12-bit 444-formatted
@@ -495,12 +489,7 @@ class Arduboy2Core
      * \see getPixelColor() setPixelColor() getBackgroundColor() setBackgroundColor()
      * getBorderLineColor() setBorderLineColor() getBorderFillColor() setBorderFillColor()
      */
-    void static setColorTheme(
-      uint16_t pixelColor = COLOR_WHITE,
-      uint16_t backgroundColor = COLOR_BLACK,
-      uint16_t borderLineColor = COLOR_GRAY,
-      uint16_t borderFillColor = COLOR_BLACK
-    );
+    void static setColorTheme(Theme theme);
 
     /** \brief
      * Originally meant to paint 8 pixels vertically to the display. This is not

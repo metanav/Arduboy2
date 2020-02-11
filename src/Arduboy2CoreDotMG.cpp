@@ -273,12 +273,12 @@ void Arduboy2Core::setBorderFillColor(uint16_t color)
     drawBorderFill();
 }
 
-void Arduboy2Core::setColorTheme(uint16_t pixelColor, uint16_t backgroundColor, uint16_t borderLineColor, uint16_t borderFillColor)
+void Arduboy2Core::setColorTheme(Theme theme)
 {
-  setPixelColor(pixelColor);
-  setBackgroundColor(backgroundColor);
-  setBorderLineColor(borderLineColor);
-  setBorderFillColor(borderFillColor);
+  setPixelColor(theme.pixelColor);
+  setBackgroundColor(theme.backgroundColor);
+  setBorderLineColor(theme.borderLineColor);
+  setBorderFillColor(theme.borderFillColor);
 }
 
 void Arduboy2Core::paintScreen(const uint8_t *image)
@@ -571,7 +571,7 @@ typedef struct
   uint32_t srcaddr;
   uint32_t dstaddr;
   uint32_t descaddr;
-} dmaDescriptor ;
+} dmaDescriptor;
 
 static volatile dmaDescriptor wrb[12] __attribute__ ((aligned(16)));
 static dmaDescriptor descriptor_section[12] __attribute__ ((aligned(16)));

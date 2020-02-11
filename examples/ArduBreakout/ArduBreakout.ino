@@ -377,8 +377,8 @@ void pause()
   //Draw pause to the screen
   arduboy.setCursor(52, 45);
   arduboy.print("PAUSE");
-  arduboy.display();
   arduboy.invert(true);
+  arduboy.display();
   beep.noTone();
   while (paused)
   {
