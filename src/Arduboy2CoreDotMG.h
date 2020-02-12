@@ -79,10 +79,10 @@
 #define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_MOSI)
 #define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_SCK)
 
-#define PIN_BUTTON_A        10
+#define PIN_BUTTON_A        9
 #define MASK_BUTTON_A       digitalPinToBitMask(PIN_BUTTON_A)
 
-#define PIN_BUTTON_B        9
+#define PIN_BUTTON_B        10
 #define MASK_BUTTON_B       digitalPinToBitMask(PIN_BUTTON_B)
 
 #define PIN_BUTTON_UP       5

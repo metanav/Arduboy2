@@ -76,7 +76,7 @@ void loop() {
   arduboy.pollButtons();
 
   // Toggle analog/digital control mode
-  if (arduboy.justPressed(B_BUTTON)) {
+  if (arduboy.justPressed(A_BUTTON)) {
     if ((controlMode = !controlMode) == DIGITAL) {
       arduboy.freeRGBled();
       digitalSet();
@@ -87,7 +87,7 @@ void loop() {
   }
 
   // Reset to Analog mode and all LEDs off
-  if (arduboy.justPressed(A_BUTTON)) {
+  if (arduboy.justPressed(B_BUTTON)) {
     reset();
   }
 
