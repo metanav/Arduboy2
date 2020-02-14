@@ -232,11 +232,12 @@ class Arduboy2Core
      * Initializes SPI transfers for the display.
      *
      * \details
-     * Acquires the SPI bus and lowers the CS pin of the display, allowing
-     * SPI data to be sent to it. Use before one or more calls to SPITransfer(). Other SPI devices
-     * cannot receive data while the CS pin of the display is low.
+     * Lowers the CS pin of the display, allowing SPI data to be sent to it. Use before
+     * one or more calls to `SPITransfer()`. Other SPI devices cannot receive data while
+     * the CS pin of the display is low. `SPIBusy()` will return true after calling
+     * this method, until the next call to `endDisplaySPI()`.
      *
-     * \see endDisplaySPI() SPITransfer()
+     * \see endDisplaySPI() SPITransfer() SPIBusy()
      */
     void static beginDisplaySPI();
 
@@ -245,43 +246,35 @@ class Arduboy2Core
      *
      * \details
      * Raises the CS pin of the display, allowing other SPI devices to accept data.
-     * Use after one or mor calls to SPITransfer().
+     * Use after one or mor calls to `SPITransfer()`. `SPIBusy()` will return false
+     * after calling this method, until the next call to `beginDisplaySPI()`.
      *
-     * \see beginDisplaySPI() SPITransfer()
+     * \see beginDisplaySPI() SPITransfer() SPIBusy()
      */
     void static endDisplaySPI();
 
     /** \brief
-     * Acquires usage of the SPI bus.
+     * Returns whether the SPI bus is in the middle of a display transaction.
      *
      * \details
      * This library uses direct memory access (DMA) to write SPI data to the
      * display asynchronously. To avoid race conditions, any other usage of
      * the SPI bus must wait for the SPI bus to be free.
      *
-     * To use the SPI bus for a device, use this method and the `freeSPI()`
-     * method as shown below:
+     * To use the SPI bus for a device, use this method as shown below:
      *
      * \code{.cpp}
-     * arduboy.acquireSPI();
+     * while (arduboy.SPIBusy());
      * // lower CS pin for SPI device here
      * SPI.beginTransaction(mySettings);
-     * SPI.transfer(myData);  // or arduboy.SPITransfer(myData)
+     * SPI.transfer(myData);
      * ...
      * SPI.endTransaction();
      * // raise CS pin for SPI device here
-     * arduboy.freeSPI();
      *
-     * \see freeSPI()
+     * \see beginDisplaySPI() endDisplaySPI()
      */
-    void static acquireSPI();
-
-    /** \brief
-     * Frees the SPI bus for use.
-     *
-     * \see acquireSPI();
-     */
-    void static freeSPI();
+    bool static SPIBusy();
 
     /** \brief
      * Transfer a byte over SPI.
@@ -290,9 +283,9 @@ class Arduboy2Core
      *
      * \details
      * Transfer one byte over the SPI bus and wait for the transfer to
-     * complete. The SPI bus should first be acquired before sending.
+     * complete. Be sure to check `SPIBusy()` before sending.
      *
-     * \see acquireSPI() freeSPI()
+     * \see SPIBusy()
      */
     void static SPITransfer(uint8_t data);
     inline void static SPItransfer(uint8_t data) { SPITransfer(data); }  // For compatibility

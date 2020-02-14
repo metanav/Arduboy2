@@ -22,7 +22,6 @@ const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 #define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
 static uint8_t *frameBuf = new uint8_t[frameBufLen];
-static volatile bool usingSPI;
 
 // Forward declarations
 static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
@@ -154,7 +153,7 @@ void Arduboy2Core::bootSPI()
 
 void Arduboy2Core::beginDisplaySPI()
 {
-  acquireSPI();
+  while (SPIBusy());
   *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
   SPI.beginTransaction(SPI_SETTINGS);
 
@@ -173,18 +172,11 @@ void Arduboy2Core::endDisplaySPI()
 {
   SPI.endTransaction();
   *portOutputRegister(IO_PORT) |= MASK_DISP_SS;
-  freeSPI();
 }
 
-void Arduboy2Core::acquireSPI()
+bool Arduboy2Core::SPIBusy()
 {
-  while (usingSPI);
-  usingSPI = true;
-}
-
-void Arduboy2Core::freeSPI()
-{
-  usingSPI = false;
+  return !(*portOutputRegister(IO_PORT) & MASK_DISP_SS);
 }
 
 void Arduboy2Core::SPITransfer(uint8_t data)
