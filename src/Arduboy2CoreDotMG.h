@@ -58,9 +58,7 @@
 
 // ----- SPI/DMA configuration -----
 
-#define SPI_24MHZ_CLOCK     // Comment out to default to 12 MHz
-
-#define SPI_SETTINGS        SPISettings(12000000, MSBFIRST, SPI_MODE0)
+#define SPI_SETTINGS        SPISettings(24000000, MSBFIRST, SPI_MODE0)
 #define SPI_SERCOM          SERCOM1
 #define DMA_TRIGGER_SRC     SERCOM1_DMAC_ID_TX
 #define DMA_CHAN            0u

@@ -156,16 +156,6 @@ void Arduboy2Core::beginDisplaySPI()
 {
   *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
   SPI.beginTransaction(SPI_SETTINGS);
-
-// The SPISettings class won't let the frequency go above 12MHz,
-// so we take matters into our own hands ;)
-#ifdef SPI_24MHZ_CLOCK
-  while(SPI_SERCOM->SPI.SYNCBUSY.bit.ENABLE);
-  SPI_SERCOM->SPI.CTRLA.bit.ENABLE = 0;
-  SPI_SERCOM->SPI.BAUD.reg = 0;  // 24 Mbps, per SAMD21 data sheet
-  SPI_SERCOM->SPI.CTRLA.bit.ENABLE = 1;
-  while(SPI_SERCOM->SPI.SYNCBUSY.bit.ENABLE);
-#endif
 }
 
 void Arduboy2Core::endDisplaySPI()
