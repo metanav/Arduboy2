@@ -116,8 +116,6 @@ setPixelColor	KEYWORD2
 getPixelColor	KEYWORD2
 setBackgroundColor	KEYWORD2
 getBackgroundColor	KEYWORD2
-SPIBusy	KEYWORD2
-waitSPI	KEYWORD2
 
 # Arduboy2Beep classes
 freq	KEYWORD2

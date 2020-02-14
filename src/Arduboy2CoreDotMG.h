@@ -234,10 +234,9 @@ class Arduboy2Core
      * \details
      * Lowers the CS pin of the display, allowing SPI data to be sent to it. Use before
      * one or more calls to `SPITransfer()`. Other SPI devices cannot receive data while
-     * the CS pin of the display is low. `SPIBusy()` will return true after calling
-     * this method, until the next call to `endDisplaySPI()`.
+     * the CS pin of the display is low.
      *
-     * \see endDisplaySPI() SPITransfer() SPIBusy()
+     * \see endDisplaySPI() SPITransfer()
      */
     void static beginDisplaySPI();
 
@@ -246,42 +245,11 @@ class Arduboy2Core
      *
      * \details
      * Raises the CS pin of the display, allowing other SPI devices to accept data.
-     * Use after one or mor calls to `SPITransfer()`. `SPIBusy()` will return false
-     * after calling this method, until the next call to `beginDisplaySPI()`.
+     * Use after one or mor calls to `SPITransfer()`.
      *
-     * \see beginDisplaySPI() SPITransfer() SPIBusy()
+     * \see beginDisplaySPI() SPITransfer()
      */
     void static endDisplaySPI();
-
-    /** \brief
-     * Waits for the SPI bus to become available.
-     *
-     * \details
-     * This library uses direct memory access (DMA) to write SPI data to the
-     * display asynchronously. To avoid race conditions, any other usage of
-     * the SPI bus must wait for the SPI bus to be free.
-     *
-     * To use the SPI bus for a device, use this method as shown below:
-     *
-     * \code{.cpp}
-     * waitSPI();
-     * // lower CS pin for SPI device here
-     * SPI.beginTransaction(mySettings);
-     * SPI.transfer(myData);
-     * ...
-     * SPI.endTransaction();
-     * // raise CS pin for SPI device here
-     *
-     * \see beginDisplaySPI() endDisplaySPI() SPIBusy()
-     */
-    inline void static waitSPI() { while (SPIBusy()); }
-
-    /** \brief
-     * Returns whether the SPI bus is in the middle of a display transaction.
-     *
-     * \see waitSPI()
-     */
-    bool static SPIBusy();
 
     /** \brief
      * Transfer a byte over SPI.
@@ -290,9 +258,7 @@ class Arduboy2Core
      *
      * \details
      * Transfer one byte over the SPI bus and wait for the transfer to
-     * complete. Be sure to check `SPIBusy()` before sending.
-     *
-     * \see SPIBusy()
+     * complete.
      */
     void static SPITransfer(uint8_t data);
     inline void static SPItransfer(uint8_t data) { SPITransfer(data); }  // For compatibility

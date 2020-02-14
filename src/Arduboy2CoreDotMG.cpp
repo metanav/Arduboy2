@@ -22,6 +22,7 @@ const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 #define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
 static uint8_t *frameBuf = new uint8_t[frameBufLen];
+static volatile bool dmaBusy;
 
 // Forward declarations
 static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
@@ -153,7 +154,6 @@ void Arduboy2Core::bootSPI()
 
 void Arduboy2Core::beginDisplaySPI()
 {
-  waitSPI();
   *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
   SPI.beginTransaction(SPI_SETTINGS);
 
@@ -172,11 +172,6 @@ void Arduboy2Core::endDisplaySPI()
 {
   SPI.endTransaction();
   *portOutputRegister(IO_PORT) |= MASK_DISP_SS;
-}
-
-bool Arduboy2Core::SPIBusy()
-{
-  return !(*portOutputRegister(IO_PORT) & MASK_DISP_SS);
 }
 
 void Arduboy2Core::SPITransfer(uint8_t data)
@@ -586,6 +581,8 @@ static void initDMA()
 
 static void startDMA(uint8_t *data, uint16_t n)
 {
+  dmaBusy = true;
+
   // Disable channel
   DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
   DMAC->CHCTRLA.bit.ENABLE = 0;
@@ -614,6 +611,9 @@ static void startDMA(uint8_t *data, uint16_t n)
   // Enable channel
   DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
   DMAC->CHCTRLA.bit.ENABLE = 1;
+
+  // Wait to finish
+  while (dmaBusy);
 }
 
 void DMAC_Handler()
@@ -626,6 +626,7 @@ void DMAC_Handler()
     DMAC->CHCTRLA.bit.ENABLE = 0;
 
     Arduboy2Core::endDisplaySPI();
+    dmaBusy = false;
 
     // Clear interrupt flag
     DMAC->CHINTENCLR.bit.TCMPL = 1;
