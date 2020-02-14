@@ -8,7 +8,7 @@
 #define ARDUBOY2_DOTMG_H
 
 #include <Arduino.h>
-// #include <EEPROM.h>
+#include <EEPROM.h>
 #include "Arduboy2CoreDotMG.h"
 #include "Arduboy2BeepDotMG.h"
 #include "Sprites.h"
@@ -47,12 +47,12 @@
                             // with 0x00
 
 // EEPROM_SYS_FLAGS values
-#define SYS_FLAG_UNAME 0           // Display the unit name on the logo screen
-#define SYS_FLAG_UNAME_MASK _BV(SYS_FLAG_UNAME)
-#define SYS_FLAG_SHOW_LOGO 1       // Show the logo sequence during boot up
-#define SYS_FLAG_SHOW_LOGO_MASK _BV(SYS_FLAG_SHOW_LOGO)
-#define SYS_FLAG_SHOW_LOGO_LEDS 2  // Flash the RGB led during the boot logo
-#define SYS_FLAG_SHOW_LOGO_LEDS_MASK _BV(SYS_FLAG_SHOW_LOGO_LEDS)
+#define SYS_FLAG_UNAME 0             // Display the unit name on the logo screen
+#define SYS_FLAG_UNAME_MASK          bit(SYS_FLAG_UNAME)
+#define SYS_FLAG_SHOW_LOGO 1         // Show the logo sequence during boot up
+#define SYS_FLAG_SHOW_LOGO_MASK      bit(SYS_FLAG_SHOW_LOGO)
+#define SYS_FLAG_SHOW_LOGO_LEDS 2    // Flash the RGB led during the boot logo
+#define SYS_FLAG_SHOW_LOGO_LEDS_MASK bit(SYS_FLAG_SHOW_LOGO_LEDS)
 
 /** \brief
  * Start of EEPROM storage space for sketches.

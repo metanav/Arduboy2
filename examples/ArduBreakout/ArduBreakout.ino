@@ -483,8 +483,8 @@ boolean displayHighScores(byte file)
     arduboy.setCursor(x,y+(i*8));
     arduboy.print(text_buffer);
     arduboy.display();
-    hi = 0xFF; //EEPROM.read(address + (5*i));
-    lo = 0xFF; //EEPROM.read(address + (5*i) + 1);
+    hi = EEPROM.read(address + (5*i));
+    lo = EEPROM.read(address + (5*i) + 1);
 
     if ((hi == 0xFF) && (lo == 0xFF))
     {
@@ -495,9 +495,9 @@ boolean displayHighScores(byte file)
       score = (hi << 8) | lo;
     }
 
-    initials[0] = '?'; //(char)EEPROM.read(address + (5*i) + 2);
-    initials[1] = '?'; //(char)EEPROM.read(address + (5*i) + 3);
-    initials[2] = '?'; //(char)EEPROM.read(address + (5*i) + 4);
+    initials[0] = (char)EEPROM.read(address + (5*i) + 2);
+    initials[1] = (char)EEPROM.read(address + (5*i) + 3);
+    initials[2] = (char)EEPROM.read(address + (5*i) + 4);
 
     if (score > 0)
     {
@@ -676,8 +676,8 @@ void enterHighScore(byte file)
   // High score processing
   for(byte i = 0; i < 7; i++)
   {
-    hi = 0xFF; //EEPROM.read(address + (5*i));
-    lo = 0xFF; //EEPROM.read(address + (5*i) + 1);
+    hi = EEPROM.read(address + (5*i));
+    lo = EEPROM.read(address + (5*i) + 1);
     if ((hi == 0xFF) && (lo == 0xFF))
     {
       // The values are uninitialized, so treat this entry
@@ -692,8 +692,8 @@ void enterHighScore(byte file)
       enterInitials();
       for(byte j = i; j < 7; j++)
       {
-        hi = 0xFF; //EEPROM.read(address + (5*j));
-        lo = 0xFF; //EEPROM.read(address + (5*j) + 1);
+        hi = EEPROM.read(address + (5*j));
+        lo = EEPROM.read(address + (5*j) + 1);
 
         if ((hi == 0xFF) && (lo == 0xFF))
         {
@@ -704,19 +704,19 @@ void enterHighScore(byte file)
           tmpScore = (hi << 8) | lo;
         }
 
-        tmpInitials[0] = '?'; //(char)EEPROM.read(address + (5*j) + 2);
-        tmpInitials[1] = '?'; //(char)EEPROM.read(address + (5*j) + 3);
-        tmpInitials[2] = '?'; //(char)EEPROM.read(address + (5*j) + 4);
+        tmpInitials[0] = (char)EEPROM.read(address + (5*j) + 2);
+        tmpInitials[1] = (char)EEPROM.read(address + (5*j) + 3);
+        tmpInitials[2] = (char)EEPROM.read(address + (5*j) + 4);
 
         // write score and initials to current slot
-        // EEPROM.update(address + (5*j), ((score >> 8) & 0xFF));
-        // EEPROM.update(address + (5*j) + 1, (score & 0xFF));
-        // EEPROM.update(address + (5*j) + 2, initials[0]);
-        // EEPROM.update(address + (5*j) + 3, initials[1]);
-        // EEPROM.update(address + (5*j) + 4, initials[2]);
+        EEPROM.update(address + (5*j), ((score >> 8) & 0xFF));
+        EEPROM.update(address + (5*j) + 1, (score & 0xFF));
+        EEPROM.update(address + (5*j) + 2, initials[0]);
+        EEPROM.update(address + (5*j) + 3, initials[1]);
+        EEPROM.update(address + (5*j) + 4, initials[2]);
 
         // tmpScore and tmpInitials now hold what we want to
-        //write in the next slot.
+        // write in the next slot.
         score = tmpScore;
         initials[0] = tmpInitials[0];
         initials[1] = tmpInitials[1];
