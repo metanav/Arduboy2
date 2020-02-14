@@ -153,7 +153,7 @@ void Arduboy2Core::bootSPI()
 
 void Arduboy2Core::beginDisplaySPI()
 {
-  while (SPIBusy());
+  waitSPI();
   *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
   SPI.beginTransaction(SPI_SETTINGS);
 

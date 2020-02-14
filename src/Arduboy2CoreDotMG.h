@@ -254,7 +254,7 @@ class Arduboy2Core
     void static endDisplaySPI();
 
     /** \brief
-     * Returns whether the SPI bus is in the middle of a display transaction.
+     * Waits for the SPI bus to become available.
      *
      * \details
      * This library uses direct memory access (DMA) to write SPI data to the
@@ -264,7 +264,7 @@ class Arduboy2Core
      * To use the SPI bus for a device, use this method as shown below:
      *
      * \code{.cpp}
-     * while (arduboy.SPIBusy());
+     * waitSPI();
      * // lower CS pin for SPI device here
      * SPI.beginTransaction(mySettings);
      * SPI.transfer(myData);
@@ -272,7 +272,14 @@ class Arduboy2Core
      * SPI.endTransaction();
      * // raise CS pin for SPI device here
      *
-     * \see beginDisplaySPI() endDisplaySPI()
+     * \see beginDisplaySPI() endDisplaySPI() SPIBusy()
+     */
+    inline void static waitSPI() { while (SPIBusy()); }
+
+    /** \brief
+     * Returns whether the SPI bus is in the middle of a display transaction.
+     *
+     * \see waitSPI()
      */
     bool static SPIBusy();
 
