@@ -48,7 +48,7 @@ Pressing the *DOWN* button (while still holding *B*) will set the flag to *audio
 
 Releasing the *B* button will exit *system control* mode and the sketch will continue.
 
-Note that the audio control feature only sets a flag in EEPROM. Whatever code actually produces the sound must use the *audio.enabled()* function to check and honor the mute state. Audio libraries written with the Arduboy system in mind, such as the available *ArduboyPlaytune* and *ArduboyTones*, should do this. However, be aware that for some sketches, which don't use the Arduboy2 or other compliant library and generate sounds in their own way, this method of muting sound may not work.
+Note that the audio control feature only sets a flag in EEPROM. Whatever code actually produces the sound must use the *audio.enabled()* function to check and honor the mute state. Audio libraries written with the Arduboy system in mind, such as the available *ArduboyPlaytuneDotMG* and *ArduboyTonesDotMG*, should do this. However, be aware that for some sketches, which don't use the Arduboy2 or other compliant library and generate sounds in their own way, this method of muting sound may not work.
 
 ## Using the library in a sketch
 
@@ -114,7 +114,7 @@ Arduboy2 arduboy;
 
 ### Simple tone generation
 
-The *BeepPin1* and *BeepPin2* classes are available from the [*Arduboy2BeepDotMG*](https://github.com/modmatic/Arduboy2BeepDotMG) library to generate simple square wave tones.
+The *BeepPin1* and *BeepPin2* classes are available from *Arduboy2BeepDotMG.h* to generate simple square wave tones.
 
 ### Ways to make more code space available to sketches
 

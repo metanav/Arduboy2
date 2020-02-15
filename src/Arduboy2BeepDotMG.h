@@ -1,10 +1,11 @@
-#include <Arduboy2CoreDotMG.h>
-
 /**
  * @file Arduboy2BeepDotMG.h
  * \brief
  * Classes to generate simple square wave tones on the Arduboy speaker pins.
  */
+
+#ifndef ARDUBOY2_BEEP_DOTMG_H
+#define ARDUBOY2_BEEP_DOTMG_H
 
 // For backwards compatibility
 #define BeepPin1 BeepChan1
@@ -284,3 +285,5 @@ class BeepChan2
     return hz;
   }
 };
+
+#endif
