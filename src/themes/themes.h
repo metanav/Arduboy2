@@ -49,8 +49,8 @@ typedef struct {
 
 // Dark, ominous theme
 #define THEME_DOOM { \
-  0xF11, \
-  0x110, \
+  0xD11, \
+  0x310, \
   0x888, \
   0x421, \
 }
