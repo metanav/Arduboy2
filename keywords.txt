@@ -9,11 +9,14 @@
 Arduboy2	KEYWORD1
 Arduboy2Base	KEYWORD1
 BeepPin1	KEYWORD1
+BeepChan1	KEYWORD1
 BeepPin2	KEYWORD1
+BeepChan2	KEYWORD1
 Point	KEYWORD1
 Rect	KEYWORD1
 Sprites	KEYWORD1
 SpritesB	KEYWORD1
+Theme	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -116,6 +119,7 @@ setPixelColor	KEYWORD2
 getPixelColor	KEYWORD2
 setBackgroundColor	KEYWORD2
 getBackgroundColor	KEYWORD2
+setColorTheme	KEYWORD2
 
 # Arduboy2Beep classes
 freq	KEYWORD2
@@ -159,6 +163,3 @@ START_BUTTON	LITERAL1
 SELECT_BUTTON	LITERAL1
 
 PIN_SPEAKER	LITERAL1
-
-ARDUBOY_NO_USB	LITERAL1
-

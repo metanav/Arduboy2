@@ -33,7 +33,7 @@ static void drawBorderLines();
 static void drawBorderGap();
 static void drawLEDs();
 static void initDMA();
-static void startDMA(uint8_t *data, uint16_t n);
+static void DMATransfer(uint8_t *data, uint16_t n);
 
 Arduboy2Core::Arduboy2Core() { }
 
@@ -287,7 +287,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
   }
 
   setWriteRegion();
-  startDMA(frameBuf, frameBufLen);
+  DMATransfer(frameBuf, frameBufLen);
 
   if (clear)
     memset(image, 0, WIDTH*HEIGHT/8);
@@ -333,7 +333,7 @@ static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint
     frameBuf[i+1] = ((color & 0xF) << 4) | (color >> 8);
     frameBuf[i+2] = color;
   }
-  startDMA(frameBuf, numBytes);
+  DMATransfer(frameBuf, numBytes);
 }
 
 static uint8_t borderMarginX()
@@ -504,7 +504,7 @@ static void drawLEDs()
     frameBuf[i + 2] = color;
   }
 
-  startDMA(frameBuf, numBytes);
+  DMATransfer(frameBuf, numBytes);
 }
 
 
@@ -569,7 +569,7 @@ static void initDMA()
   );
 }
 
-static void startDMA(uint8_t *data, uint16_t n)
+static void DMATransfer(uint8_t *data, uint16_t n)
 {
   dmaBusy = true;
 
