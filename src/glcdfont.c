@@ -4,7 +4,6 @@
  * The font definitions used to display text characters.
  */
 
-#include <avr/io.h>
 #include <avr/pgmspace.h>
 
 #ifndef FONT5X7_H

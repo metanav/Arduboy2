@@ -223,7 +223,7 @@ class Arduboy2Base : public Arduboy2Core
    *
    * \details
    * This function should be called once near the start of the sketch,
-   * usually in `setup()`, before using any other functions in this class.
+   * usually in `setup()`, before using most other functions in this class.
    * It initializes the display, displays the boot logo, provides "flashlight"
    * and system control features and initializes audio control.
    *
@@ -1633,4 +1633,3 @@ class Arduboy2 : public Print, public Arduboy2Base
 };
 
 #endif
-
