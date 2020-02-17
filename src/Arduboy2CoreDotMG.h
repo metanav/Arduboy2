@@ -574,7 +574,7 @@ class Arduboy2Core
      *
      * \details
      * Calling this function with a value of `true` will cause the X coordinate
-     * to start at the left edge of the display instead of the right,
+     * to start at the right edge of the display instead of the left,
      * effectively flipping the display horizontally.
      *
      * Once in horizontal flip mode, it will remain this way until normal
