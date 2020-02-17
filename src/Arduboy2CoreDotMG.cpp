@@ -21,7 +21,7 @@ const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 
 #define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
-static uint8_t *frameBuf = new uint8_t[frameBufLen];
+static uint8_t frameBuf[frameBufLen];
 static volatile bool dmaBusy;
 
 // Forward declarations
