@@ -281,11 +281,6 @@ class Arduboy2Core
      * Used to power up and reinitialize the display after calling
      * `displayOff()`.
      *
-     * \note
-     * The previous call to `displayOff()` will have caused the display's
-     * buffer contents to be lost. The display will have to be re-painted,
-     * which is usually done by calling `display()`.
-     *
      * \see displayOff()
      */
     void static displayOn();
