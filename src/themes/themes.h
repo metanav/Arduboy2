@@ -41,7 +41,7 @@ typedef struct {
 #define THEME_ELEKTRONIK { \
   COLOR_CYAN, \
   0x035, \
-  COLOR_MAGENTA, \
+  0xF80, \
   0x303, \
 }
 
