@@ -11,16 +11,35 @@ bool Arduboy2Audio::audio_enabled = false;
 
 void Arduboy2Audio::on()
 {
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->CTRLA.bit.ENABLE = 0;     // disable DAC
+
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->DACCTRL[DAC_CH_SPEAKER].bit.ENABLE = 1;  // enable channel
+
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->CTRLA.bit.ENABLE = 1;     // enable DAC
+
+  while (!DAC_READY);
+  while (DAC_DATA_BUSY);
+  DAC->DATA[DAC_CH_SPEAKER].reg = 0;
+  delay(10);
+
   audio_enabled = true;
-  DAC->CTRLA.bit.ENABLE = 1;
-  while (DAC->STATUS.bit.SYNCBUSY);
 }
 
 void Arduboy2Audio::off()
 {
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->CTRLA.bit.ENABLE = 0;     // disable DAC
+
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->DACCTRL[DAC_CH_SPEAKER].bit.ENABLE = 0;  // disable channel
+
+  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
+  DAC->CTRLA.bit.ENABLE = 1;     // enable DAC
+
   audio_enabled = false;
-  DAC->CTRLA.bit.ENABLE = 0;
-  while (DAC->STATUS.bit.SYNCBUSY);
 }
 
 void Arduboy2Audio::toggle()

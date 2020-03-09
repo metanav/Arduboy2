@@ -1261,4 +1261,3 @@ void Arduboy2::clear()
     Arduboy2Base::clear();
     cursor_x = cursor_y = 0;
 }
-

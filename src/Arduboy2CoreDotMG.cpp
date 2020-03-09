@@ -22,7 +22,15 @@ const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 #define BYTES_FOR_REGION(width, height) ((width)*(height)*12/8)  // 12 bits/px, 8 bits/byte
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
 static uint8_t frameBuf[frameBufLen];
-static volatile bool dmaBusy;
+
+static SPIClass dispSPI(
+    &PERIPH_SPI_DISP,
+    PIN_SPI_DISP_MISO,
+    PIN_SPI_DISP_SCK,
+    PIN_SPI_DISP_MOSI,
+    PAD_SPI_DISP_TX,
+    PAD_SPI_DISP_RX
+  );
 
 // Forward declarations
 static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
@@ -32,17 +40,13 @@ static void drawBorderFill();
 static void drawBorderLines();
 static void drawBorderGap();
 static void drawLEDs();
-static void initDMA();
-static void DMATransfer(uint8_t *data, uint16_t n);
 
 Arduboy2Core::Arduboy2Core() { }
 
 void Arduboy2Core::boot()
 {
   bootPins();
-  bootSPI();
   bootDisplay();
-  bootPowerSaving();
 }
 
 void Arduboy2Core::bootPins()
@@ -55,21 +59,27 @@ void Arduboy2Core::bootPins()
   pinMode(PIN_BUTTON_RIGHT, INPUT_PULLUP);
   pinMode(PIN_BUTTON_START, INPUT_PULLUP);
   pinMode(PIN_BUTTON_SELECT, INPUT_PULLUP);
+
+  pinMode(PIN_SPEAKER, OUTPUT);
 }
 
 void Arduboy2Core::bootDisplay()
 {
-  pinMode(PIN_DISP_SS, OUTPUT);
   pinMode(PIN_DISP_DC, OUTPUT);
-  digitalWrite(PIN_DISP_SS, HIGH);
+  pinMode(PIN_DISP_LED, OUTPUT);
+
+  // Activate display SPI slave
+  pinMode(PIN_SPI_DISP_SS, OUTPUT);
+  digitalWrite(PIN_SPI_DISP_SS, LOW);
+
+  dispSPI.begin();
 
   beginDisplaySPI();
 
   sendDisplayCommand(ST77XX_SWRESET);  // Software reset
   delayShort(150);
 
-  sendDisplayCommand(ST77XX_SLPOUT);  // Bring out of sleep mode
-  delayShort(150);
+  displayOn();
 
   sendDisplayCommand(ST7735_FRMCTR1);  // Framerate ctrl - normal mode
   SPITransfer(0x01);               // Rate = fosc/(1x2+40) * (LINE+2C+2D)
@@ -129,44 +139,29 @@ void Arduboy2Core::bootDisplay()
   sendDisplayCommand(ST77XX_DISPON); //  Turn screen on
   delayShort(100);
 
-  endDisplaySPI();
-
   drawBorder();
-  blank();
 }
 
 void Arduboy2Core::displayDataMode()
 {
-  *portOutputRegister(IO_PORT) |= MASK_DISP_DC;
+  *portOutputRegister(PORT_DISP_DC_LED) |= MASK_DISP_DC;
 }
 
 void Arduboy2Core::displayCommandMode()
 {
-  *portOutputRegister(IO_PORT) &= ~MASK_DISP_DC;
-}
-
-// Initialize the SPI interface for the display
-void Arduboy2Core::bootSPI()
-{
-  SPI.begin();
-  initDMA();
+  *portOutputRegister(PORT_DISP_DC_LED) &= ~MASK_DISP_DC;
 }
 
 void Arduboy2Core::beginDisplaySPI()
 {
-  *portOutputRegister(IO_PORT) &= ~MASK_DISP_SS;
-  SPI.beginTransaction(SPI_SETTINGS);
-}
-
-void Arduboy2Core::endDisplaySPI()
-{
-  SPI.endTransaction();
-  *portOutputRegister(IO_PORT) |= MASK_DISP_SS;
+  dispSPI.waitForTransfer();  // Block until any DMA transfers finish
+  dispSPI.endTransaction();  // End any previous transaction
+  dispSPI.beginTransaction(SPI_SETTINGS_DISP); // Start new transaction
 }
 
 void Arduboy2Core::SPITransfer(uint8_t data)
 {
-  SPI.transfer(data);
+  dispSPI.transfer(data);
 }
 
 void Arduboy2Core::safeMode()
@@ -183,9 +178,9 @@ void Arduboy2Core::safeMode()
 // Shut down the display
 void Arduboy2Core::displayOff()
 {
+  *portOutputRegister(PORT_DISP_DC_LED) &= ~MASK_DISP_LED;
   beginDisplaySPI();
   sendDisplayCommand(ST77XX_SLPIN);
-  endDisplaySPI();
   delayShort(150);
 }
 
@@ -194,8 +189,8 @@ void Arduboy2Core::displayOn()
 {
   beginDisplaySPI();
   sendDisplayCommand(ST77XX_SLPOUT);
-  endDisplaySPI();
   delayShort(150);
+  *portOutputRegister(PORT_DISP_DC_LED) |= MASK_DISP_LED;
 }
 
 
@@ -287,7 +282,7 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
   }
 
   setWriteRegion();
-  DMATransfer(frameBuf, frameBufLen);
+  dispSPI.transfer(frameBuf, NULL, frameBufLen, false);
 
   if (clear)
     memset(image, 0, WIDTH*HEIGHT/8);
@@ -325,6 +320,7 @@ static void setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
   Arduboy2Core::beginDisplaySPI();
+
   int numBytes = BYTES_FOR_REGION(width, height);
   setWriteRegion(x, y, width, height);
   for (int i = 0; i < numBytes; i += 3)
@@ -333,7 +329,8 @@ static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint
     frameBuf[i+1] = ((color & 0xF) << 4) | (color >> 8);
     frameBuf[i+2] = color;
   }
-  DMATransfer(frameBuf, numBytes);
+
+  dispSPI.transfer(frameBuf, NULL, numBytes, false);
 }
 
 static uint8_t borderMarginX()
@@ -346,20 +343,16 @@ static uint8_t borderMarginY()
   return (DISP_HEIGHT-borderWindowHeight)/2;
 }
 
-// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
 static void drawBorderFill()
 {
   const uint8_t marginX = borderMarginX();
   const uint8_t marginY = borderMarginY();
-  int numBytes;
-
   drawRegion(borderFillColor, 0, 0, DISP_WIDTH, marginY-1);
   drawRegion(borderFillColor, 0, DISP_HEIGHT-(marginY-1), DISP_WIDTH, marginY-1);
   drawRegion(borderFillColor, 0, marginY-1, marginX-1, borderWindowHeight+4);
   drawRegion(borderFillColor, DISP_WIDTH-(marginX-1), marginY-1, marginX-1, borderWindowHeight+4);
 }
 
-// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
 static void drawBorderLines()
 {
   const uint8_t marginX = borderMarginX();
@@ -372,7 +365,6 @@ static void drawBorderLines()
   drawRegion(borderLineColor, DISP_WIDTH-marginX, marginY, 1, borderWindowHeight);
 }
 
-// Note: this function reuses frameBuf since numBytes should always be less than frameBufLen
 static void drawBorderGap()
 {
   const uint8_t marginX = borderMarginX();
@@ -413,7 +405,6 @@ void Arduboy2Core::allPixelsOn(bool on)
 {
   beginDisplaySPI();
   sendDisplayCommand(on ? ST77XX_DISPOFF : ST77XX_DISPON);
-  endDisplaySPI();
   delayShort(100);
 }
 
@@ -431,7 +422,6 @@ void Arduboy2Core::flipVertical(bool flipped)
   beginDisplaySPI();
   sendDisplayCommand(ST77XX_MADCTL);
   SPITransfer(MADCTL);
-  endDisplaySPI();
 }
 
 // flip the display horizontally or set to normal
@@ -448,7 +438,6 @@ void Arduboy2Core::flipHorizontal(bool flipped)
   beginDisplaySPI();
   sendDisplayCommand(ST77XX_MADCTL);
   SPITransfer(MADCTL);
-  endDisplaySPI();
 }
 
 
@@ -504,7 +493,7 @@ static void drawLEDs()
     frameBuf[i + 2] = color;
   }
 
-  DMATransfer(frameBuf, numBytes);
+  dispSPI.transfer(frameBuf, NULL, numBytes, false);
 }
 
 
@@ -512,16 +501,17 @@ static void drawLEDs()
 
 uint8_t Arduboy2Core::buttonsState()
 {
-  uint32_t btns = ~(*portInputRegister(IO_PORT));
+  uint32_t st_sel_up_rt = ~(*portInputRegister(PORT_ST_SEL_UP_RT));
+  uint32_t a_b_dn_lf = ~(*portInputRegister(PORT_A_B_DN_LF));
   return (
-    (((btns & MASK_BUTTON_A) != 0) << A_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_B) != 0) << B_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_UP) != 0) << UP_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_START) != 0) << START_BUTTON_BIT) |
-    (((btns & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON_BIT)
+    (((a_b_dn_lf & MASK_BUTTON_A) != 0) << A_BUTTON_BIT) |
+    (((a_b_dn_lf & MASK_BUTTON_B) != 0) << B_BUTTON_BIT) |
+    (((a_b_dn_lf & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON_BIT) |
+    (((a_b_dn_lf & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON_BIT) |
+    (((st_sel_up_rt & MASK_BUTTON_UP) != 0) << UP_BUTTON_BIT) |
+    (((st_sel_up_rt & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON_BIT) |
+    (((st_sel_up_rt & MASK_BUTTON_START) != 0) << START_BUTTON_BIT) |
+    (((st_sel_up_rt & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON_BIT)
   );
 }
 
@@ -535,90 +525,4 @@ void Arduboy2Core::exitToBootloader()
 {
   noInterrupts();
   while (true);
-}
-
-
-//  DMA code
-// -------------------------------------------------------
-
-typedef struct
-{
-  uint16_t btctrl;
-  uint16_t btcnt;
-  uint32_t srcaddr;
-  uint32_t dstaddr;
-  uint32_t descaddr;
-} dmaDescriptor;
-
-static volatile dmaDescriptor wrb[12] __attribute__ ((aligned(16)));
-static dmaDescriptor descriptor_section[12] __attribute__ ((aligned(16)));
-static dmaDescriptor descriptor __attribute__ ((aligned(16)));
-
-static void initDMA()
-{
-  PM->AHBMASK.bit.DMAC_ = 1;
-  PM->APBBMASK.bit.DMAC_ = 1;
-  NVIC_EnableIRQ(DMAC_IRQn);
-
-  // Assign descriptor/WRB addresses and enable DMA
-  DMAC->BASEADDR.reg = (uint32_t)descriptor_section;
-  DMAC->WRBADDR.reg = (uint32_t)wrb;
-  DMAC->CTRL.reg = (
-    DMAC_CTRL_DMAENABLE |
-    DMAC_CTRL_LVLEN(0xF)
-  );
-}
-
-static void DMATransfer(uint8_t *data, uint16_t n)
-{
-  dmaBusy = true;
-
-  // Disable channel
-  DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
-  DMAC->CHCTRLA.bit.ENABLE = 0;
-
-  // Reset and configure
-  DMAC->CHCTRLA.bit.SWRST = 1;
-  DMAC->SWTRIGCTRL.reg &= ~bit(DMA_CHAN);
-  DMAC->CHCTRLB.reg = (
-    DMAC_CHCTRLB_LVL(0) |
-    DMAC_CHCTRLB_TRIGSRC(DMA_TRIGGER_SRC) |
-    DMAC_CHCTRLB_TRIGACT_BEAT
-  );
-  DMAC->CHINTENSET.bit.TCMPL = 1;  // enable completion interrupt
-
-  // Configure descriptor
-  descriptor.descaddr = 0;
-  descriptor.dstaddr = (uint32_t)&SPI_SERCOM->SPI.DATA.reg;
-  descriptor.btcnt = n;
-  descriptor.srcaddr = (uint32_t)data + n;
-  descriptor.btctrl = (
-    DMAC_BTCTRL_VALID |
-    DMAC_BTCTRL_SRCINC
-  );
-  memcpy(&descriptor_section[DMA_CHAN], &descriptor, sizeof(dmaDescriptor));
-
-  // Enable channel
-  DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
-  DMAC->CHCTRLA.bit.ENABLE = 1;
-
-  // Wait to finish
-  while (dmaBusy);
-}
-
-void DMAC_Handler()
-{
-  DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
-  if (DMAC->CHINTFLAG.bit.TCMPL)
-  {
-    // Disable DMA
-    DMAC->CHID.reg = DMAC_CHID_ID(DMA_CHAN);
-    DMAC->CHCTRLA.bit.ENABLE = 0;
-
-    Arduboy2Core::endDisplaySPI();
-    dmaBusy = false;
-
-    // Clear interrupt flag
-    DMAC->CHINTENCLR.bit.TCMPL = 1;
-  }
 }

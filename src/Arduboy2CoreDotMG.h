@@ -56,52 +56,45 @@
 #define DISP_HEIGHT  128
 
 
-// ----- SPI/DMA configuration -----
-
-#define SPI_SETTINGS        SPISettings(24000000, MSBFIRST, SPI_MODE0)
-#define SPI_SERCOM          SERCOM1
-#define DMA_TRIGGER_SRC     SERCOM1_DMAC_ID_TX
-#define DMA_CHAN            0u
-
-
 // ----- Pins -----
 
-#define IO_PORT             (&(PORT->Group[PORTA]))
+#define PORT_ST_SEL_UP_RT   (&(PORT->Group[PORTA]))
+#define PORT_A_B_DN_LF      (&(PORT->Group[PORTB]))
+#define PORT_DISP_DC_LED    (&(PORT->Group[PORTA]))
 
-#define PIN_DISP_SS         16
-#define MASK_DISP_SS        digitalPinToBitMask(PIN_DISP_SS)
-
-#define PIN_DISP_DC         17
 #define MASK_DISP_DC        digitalPinToBitMask(PIN_DISP_DC)
+#define MASK_DISP_LED       digitalPinToBitMask(PIN_DISP_LED)
+#define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_DISP_MOSI)
+#define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_DISP_SCK)
 
-#define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_MOSI)
-#define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_SCK)
-
-#define PIN_BUTTON_A        9
+#define PIN_BUTTON_A        20
 #define MASK_BUTTON_A       digitalPinToBitMask(PIN_BUTTON_A)
 
-#define PIN_BUTTON_B        10
+#define PIN_BUTTON_B        21
 #define MASK_BUTTON_B       digitalPinToBitMask(PIN_BUTTON_B)
 
-#define PIN_BUTTON_UP       5
+#define PIN_BUTTON_UP       18
 #define MASK_BUTTON_UP      digitalPinToBitMask(PIN_BUTTON_UP)
 
-#define PIN_BUTTON_DOWN     6
+#define PIN_BUTTON_DOWN     4
 #define MASK_BUTTON_DOWN    digitalPinToBitMask(PIN_BUTTON_DOWN)
 
-#define PIN_BUTTON_LEFT     7
+#define PIN_BUTTON_LEFT     5
 #define MASK_BUTTON_LEFT    digitalPinToBitMask(PIN_BUTTON_LEFT)
 
-#define PIN_BUTTON_RIGHT    8
+#define PIN_BUTTON_RIGHT    19
 #define MASK_BUTTON_RIGHT   digitalPinToBitMask(PIN_BUTTON_RIGHT)
 
-#define PIN_BUTTON_START    14
+#define PIN_BUTTON_START    0
 #define MASK_BUTTON_START   digitalPinToBitMask(PIN_BUTTON_START)
 
-#define PIN_BUTTON_SELECT   15
+#define PIN_BUTTON_SELECT   1
 #define MASK_BUTTON_SELECT  digitalPinToBitMask(PIN_BUTTON_SELECT)
 
-#define PIN_SPEAKER         PIN_DAC0
+#define PIN_SPEAKER         PIN_DAC1
+#define DAC_CH_SPEAKER      1
+#define DAC_READY           DAC->STATUS.bit.READY1
+#define DAC_DATA_BUSY       DAC->SYNCBUSY.bit.DATA1
 
 
 // ----- For display configuration (ST7735R) -----
@@ -225,29 +218,12 @@ class Arduboy2Core
     void static displayCommandMode();
     inline void static LCDCommandMode() { displayCommandMode(); }  // For compatibility
 
-
     /** \brief
-     * Initializes SPI transfers for the display.
+     * Initializes an SPI transfer for the display.
      *
-     * \details
-     * Lowers the CS pin of the display, allowing SPI data to be sent to it. Use before
-     * one or more calls to `SPITransfer()`. Other SPI devices cannot receive data while
-     * the CS pin of the display is low.
-     *
-     * \see endDisplaySPI() SPITransfer()
+     * \see SPITransfer()
      */
     void static beginDisplaySPI();
-
-    /** \brief
-     * Terminates SPI transfers for the display.
-     *
-     * \details
-     * Raises the CS pin of the display, allowing other SPI devices to accept data.
-     * Use after one or mor calls to `SPITransfer()`.
-     *
-     * \see beginDisplaySPI() SPITransfer()
-     */
-    void static endDisplaySPI();
 
     /** \brief
      * Transfer a byte over SPI.
@@ -751,10 +727,8 @@ class Arduboy2Core
 
   protected:
     // internals
-    void static bootSPI();
     void static bootDisplay();
     void static bootPins();
-    void static bootPowerSaving() {}
 };
 
 #endif

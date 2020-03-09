@@ -122,7 +122,7 @@ class BeepChan1
    * It can also be manipulated directly by the sketch, although this should
    * seldom be necessary.
    */
-  static uint8_t duration;
+  static uint16_t duration;
 
   /** \brief
    * Set up the hardware.
@@ -137,7 +137,7 @@ class BeepChan1
   /** \brief
    * Play a tone continually, until replaced by a new tone or stopped.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.
+   * \param freq The desired tone frequency, from 23 to 1500000 Hz.  // TODO: Update this
    *
    * \details
    * A tone is played indefinitely, until replaced by another tone or stopped
@@ -162,7 +162,7 @@ class BeepChan1
    *
    * \see freq() timer() noTone()
    */
-  static void tone(float freq, uint8_t dur);
+  static void tone(float freq, uint16_t dur);
 
   /** \brief
    * Handle the duration that a tone plays for.
@@ -225,7 +225,7 @@ class BeepChan2
    * \details
    * For details see `BeepChan1::duration`.
    */
-  static uint8_t duration;
+  static uint16_t duration;
 
   /** \brief
    * Set up the hardware for playing tones using speaker channel 2.
@@ -239,7 +239,7 @@ class BeepChan2
    * Play a tone on speaker channel 2 continually, until replaced by a new tone
    * or stopped.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.
+   * \param freq The desired tone frequency, from 23 to 1500000 Hz.  // TODO: Update this
    *
    * \details
    * For details see `BeepChan1::tone(float)`.
@@ -255,7 +255,7 @@ class BeepChan2
    * \details
    * For details see `BeepChan1::tone(float, uint8_t)`.
    */
-  static void tone(float freq, uint8_t dur);
+  static void tone(float freq, uint16_t dur);
 
   /** \brief
    * Handle the duration that a tone on speaker channel 2 plays for.
