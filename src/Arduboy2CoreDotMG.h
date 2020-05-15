@@ -52,8 +52,8 @@
 
 #define WIDTH       128
 #define HEIGHT      64
-#define DISP_WIDTH   160
-#define DISP_HEIGHT  128
+#define DISP_WIDTH  160
+#define DISP_HEIGHT 128
 
 
 // ----- Pins -----

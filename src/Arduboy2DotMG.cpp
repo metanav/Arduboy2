@@ -59,11 +59,11 @@ void Arduboy2Base::begin()
   bootLogo();
   // alternative logo functions. Work the same as bootLogo() but may reduce
   // memory size if the sketch uses the same bitmap drawing function
-//  bootLogoCompressed();
-//  bootLogoSpritesSelfMasked();
-//  bootLogoSpritesOverwrite();
-//  bootLogoSpritesBSelfMasked();
-//  bootLogoSpritesBOverwrite();
+  // bootLogoCompressed();
+  // bootLogoSpritesSelfMasked();
+  // bootLogoSpritesOverwrite();
+  // bootLogoSpritesBSelfMasked();
+  // bootLogoSpritesBOverwrite();
 
   waitNoButtons(); // wait for all buttons to be released
 }

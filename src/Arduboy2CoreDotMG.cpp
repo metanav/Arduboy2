@@ -30,7 +30,7 @@ static SPIClass dispSPI(
     PIN_SPI_DISP_MOSI,
     PAD_SPI_DISP_TX,
     PAD_SPI_DISP_RX
-  );
+);
 
 // Forward declarations
 static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);

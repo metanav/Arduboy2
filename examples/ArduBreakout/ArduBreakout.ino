@@ -748,4 +748,3 @@ void playToneTimed(unsigned int frequency, unsigned int duration)
   arduboy.delayShort(duration);
   beep.noTone();
 }
-
