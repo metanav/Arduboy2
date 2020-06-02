@@ -25,10 +25,10 @@ static void timer_init(Tc *TCx, unsigned int clkId, IRQn_Type irqn)
   // Set to match frequency mode
   TCx->COUNT16.WAVE.reg = TC_WAVE_WAVEGEN_MFRQ;
 
-  // Set to 16-bit counter, clk/16 prescaler
+  // Set to 16-bit counter, clk/64 prescaler
   TCx->COUNT16.CTRLA.reg = (
     TC_CTRLA_MODE_COUNT16 |
-    TC_CTRLA_PRESCALER_DIV16
+    TC_CTRLA_PRESCALER_DIV64
   );
   while (TCx->COUNT16.SYNCBUSY.bit.ENABLE);
 
@@ -46,7 +46,7 @@ static void timer_init(Tc *TCx, unsigned int clkId, IRQn_Type irqn)
 static void timer_tone(Tc *TCx, float freq, uint16_t dur)
 {
   // Set counter based on desired frequency
-  TCx->COUNT16.CC[0].reg = (uint16_t)((F_CPU / 16 / 2 / freq) - 1);
+  TCx->COUNT16.CC[0].reg = (uint16_t)((F_CPU / 64 / 2 / freq) - 1);
 
   // Enable counter
   TCx->COUNT16.CTRLA.bit.ENABLE = 1;

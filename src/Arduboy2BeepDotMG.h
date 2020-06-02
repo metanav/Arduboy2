@@ -137,7 +137,7 @@ class BeepChan1
   /** \brief
    * Play a tone continually, until replaced by a new tone or stopped.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.  // TODO: Update this
+   * \param freq The desired tone frequency, from 14 to 937,500 Hz.
    *
    * \details
    * A tone is played indefinitely, until replaced by another tone or stopped
@@ -150,7 +150,7 @@ class BeepChan1
   /** \brief
    * Play a tone for a given duration.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.
+   * \param freq The desired tone frequency, from 14 to 937,500 Hz.
    * \param dur The duration of the tone, used by `timer()`.
    *
    * \details
@@ -239,7 +239,7 @@ class BeepChan2
    * Play a tone on speaker channel 2 continually, until replaced by a new tone
    * or stopped.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.  // TODO: Update this
+   * \param freq The desired tone frequency, from 14 to 937,500 Hz.
    *
    * \details
    * For details see `BeepChan1::tone(float)`.
@@ -249,7 +249,7 @@ class BeepChan2
   /** \brief
    * Play a tone on speaker channel 2 for a given duration.
    *
-   * \param freq The desired tone frequency, from 23 to 1500000 Hz.
+   * \param freq The desired tone frequency, from 14 to 937,500 Hz.
    * \param dur The duration of the tone, used by `timer()`.
    *
    * \details
