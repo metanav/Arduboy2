@@ -43,7 +43,7 @@ static void timer_init(Tc *TCx, unsigned int clkId, IRQn_Type irqn)
   while (TCx->COUNT16.SYNCBUSY.bit.ENABLE);
 }
 
-static void timer_tone(Tc *TCx, float freq, uint16_t dur)
+static void timer_tone(Tc *TCx, float freq)
 {
   // Set counter based on desired frequency
   TCx->COUNT16.CC[0].reg = (uint16_t)((F_CPU / 64 / 2 / freq) - 1);
@@ -82,7 +82,7 @@ void BeepChan1::tone(float freq)
 void BeepChan1::tone(float freq, uint16_t dur)
 {
   duration = dur;
-  timer_tone(TIMER1, freq, dur);
+  timer_tone(TIMER1, freq);
 }
 
 void BeepChan1::timer()
@@ -121,7 +121,7 @@ void BeepChan2::tone(float freq)
 void BeepChan2::tone(float freq, uint16_t dur)
 {
   duration = dur;
-  timer_tone(TIMER2, freq, dur);
+  timer_tone(TIMER2, freq);
 }
 
 void BeepChan2::timer()
