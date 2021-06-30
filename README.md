@@ -86,7 +86,7 @@ Sprites sprites;
 
 Sample sketches have been included with the library as examples of how to use it. To load an example, for examination and uploading to the Arduboy, using the Arduino IDE menus select:
 
-`File > Examples > Arduboy2DotMG`
+`File > Examples > Arduboy2
 
 More information on writing sketches for the Arduboy can be found in the [Arduboy Community Forum](http://community.arduboy.com/).
 
@@ -103,7 +103,7 @@ The Arduboy2Base class, and thus the Arduboy2 class, creates an Arduboy2Audio cl
 Example:
 
 ```cpp
-#include <Arduboy2DotMG.h>
+#include <Arduboy2.h>
 
 Arduboy2 arduboy;
 
