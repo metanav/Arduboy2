@@ -1,6 +1,6 @@
-# Arduboy2DotMG Library
+# Arduboy2 Library
 
-The **Arduboy2DotMG** library is a fork of the [Arduboy2 library](https://github.com/MLXXXp/Arduboy2), with modifications made to allow compatibility with the Modmatic dotMG DIY handheld game console.
+The **Arduboy2** library is a fork of the [Arduboy2 library](https://github.com/modmatic/Arduboy2DotMG), with modifications made to allow compatibility with the Seeedstudio Wio Terminal with SAMD51 MCU and ILI9341 Display.
 
 ## Library documentation
 
