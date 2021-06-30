@@ -8,7 +8,7 @@ To the extent possible under law, Scott Allen has waived all copyright and
 related or neighboring rights to this BeepDemo program.
 */
 
-#include <Arduboy2DotMG.h>
+#include <Arduboy2.h>
 
 // The frame rate determines the button auto-repeat rate
 #define FRAME_RATE 25

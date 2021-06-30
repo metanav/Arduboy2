@@ -4,7 +4,7 @@
  * The Arduboy2Base and Arduboy2 classes and support objects and definitions.
  */
 
-#include "Arduboy2DotMG.h"
+#include "Arduboy2.h"
 #include "ab_logo.c"
 #include "glcdfont.c"
 
@@ -54,9 +54,10 @@ void Arduboy2Base::begin()
   // check for and handle buttons held during start up for system control
   systemButtons();
 
-  audio.begin();
+  //audio.begin();
 
   bootLogo();
+
   // alternative logo functions. Work the same as bootLogo() but may reduce
   // memory size if the sketch uses the same bitmap drawing function
   // bootLogoCompressed();
@@ -84,24 +85,27 @@ void Arduboy2Base::flashlight()
 void Arduboy2Base::systemButtons()
 {
   while (pressed(B_BUTTON)) {
-    digitalWriteRGB(BLUE_LED, RGB_ON); // turn on blue LED
+    //digitalWriteRGB(BLUE_LED, RGB_ON); // turn on blue LED
+    digitalWrite(LED_BUILTIN, HIGH);
     sysCtrlSound(UP_BUTTON + B_BUTTON, GREEN_LED, 0xff);
     sysCtrlSound(DOWN_BUTTON + B_BUTTON, RED_LED, 0);
     delayShort(200);
   }
 
-  digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+  //digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void Arduboy2Base::sysCtrlSound(uint8_t buttons, uint8_t led, uint8_t eeVal)
 {
   if (pressed(buttons)) {
-    digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+    //digitalWriteRGB(BLUE_LED, RGB_OFF); // turn off blue LED
+    digitalWrite(LED_BUILTIN, LOW);
     delayShort(200);
-    digitalWriteRGB(led, RGB_ON); // turn on "acknowledge" LED
+    //digitalWriteRGB(led, RGB_ON); // turn on "acknowledge" LED
     EEPROM.update(EEPROM_AUDIO_ON_OFF, eeVal);
     delayShort(500);
-    digitalWriteRGB(led, RGB_OFF); // turn off "acknowledge" LED
+    //digitalWriteRGB(led, RGB_OFF); // turn off "acknowledge" LED
 
     while (pressed(buttons)) { } // Wait for button release
   }
@@ -1099,9 +1103,10 @@ void Arduboy2::bootLogoText()
 void Arduboy2::bootLogoExtra()
 {
   uint8_t c;
-  const uint8_t forText[] = "for dotMG";
+  const uint8_t forText[] = "Wioboy";
 
-  cursor_x = (WIDTH - (sizeof(forText)*6))/2;
+  //cursor_x = (WIDTH - (sizeof(forText)*6))/2;
+  cursor_x = (HEIGHT - (sizeof(forText)*6))/2;
   cursor_y = 44;
   for (int i = 0; i < sizeof(forText); i++) {
     write(forText[i]);

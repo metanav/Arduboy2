@@ -4,14 +4,15 @@
  * The Arduboy2Core class for Arduboy hardware initilization and control.
  */
 
-#include "Arduboy2CoreDotMG.h"
+#include "Arduboy2Core.h"
 #include <SPI.h>
 
-static uint16_t borderLineColor = COLOR_GRAY;
-static uint16_t borderFillColor = COLOR_BLACK;
-static uint16_t pixelColor = COLOR_WHITE;
-static uint16_t bgColor = COLOR_BLACK;
-static uint8_t MADCTL = ST77XX_MADCTL_MV | ST77XX_MADCTL_MY;
+TFT_eSPI screen = TFT_eSPI();
+
+static uint16_t borderLineColor =  TFT_LIGHTGREY;
+static uint16_t borderFillColor =  TFT_BLACK; 
+static uint16_t pixelColor = TFT_WHITE;
+static uint16_t bgColor = TFT_BLACK;
 static uint8_t LEDs[] = {0, 0, 0};
 static bool inverted = false;
 static bool borderDrawn = false;
@@ -23,18 +24,10 @@ const uint8_t borderWindowHeight = HEIGHT+borderInnerGap*2;
 static const int frameBufLen = BYTES_FOR_REGION(WIDTH, HEIGHT);
 static uint8_t frameBuf[frameBufLen];
 
-static SPIClass dispSPI(
-    &PERIPH_SPI_DISP,
-    PIN_SPI_DISP_MISO,
-    PIN_SPI_DISP_SCK,
-    PIN_SPI_DISP_MOSI,
-    PAD_SPI_DISP_TX,
-    PAD_SPI_DISP_RX
-);
-
 // Forward declarations
-static void setWriteRegion(uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+
 static void drawRegion(uint16_t color, uint8_t x = (DISP_WIDTH-WIDTH)/2, uint8_t y = (DISP_HEIGHT-HEIGHT)/2, uint8_t width = WIDTH, uint8_t height = HEIGHT);
+
 static void drawBorder();
 static void drawBorderFill();
 static void drawBorderLines();
@@ -59,110 +52,19 @@ void Arduboy2Core::bootPins()
   pinMode(PIN_BUTTON_RIGHT, INPUT_PULLUP);
   pinMode(PIN_BUTTON_START, INPUT_PULLUP);
   pinMode(PIN_BUTTON_SELECT, INPUT_PULLUP);
-
   pinMode(PIN_SPEAKER, OUTPUT);
 }
 
 void Arduboy2Core::bootDisplay()
 {
-  pinMode(PIN_DISP_DC, OUTPUT);
-  pinMode(PIN_DISP_LED, OUTPUT);
-
-  // Activate display SPI slave
-  pinMode(PIN_SPI_DISP_SS, OUTPUT);
-  digitalWrite(PIN_SPI_DISP_SS, LOW);
-
-  dispSPI.begin();
-
-  beginDisplaySPI();
-
-  sendDisplayCommand(ST77XX_SWRESET);  // Software reset
-  delayShort(150);
-
-  displayOn();
-
-  sendDisplayCommand(ST7735_FRMCTR1);  // Framerate ctrl - normal mode
-  SPITransfer(0x01);               // Rate = fosc/(1x2+40) * (LINE+2C+2D)
-  SPITransfer(0x2C);
-  SPITransfer(0x2D);
-
-  sendDisplayCommand(ST77XX_MADCTL);  // Set initial orientation
-  SPITransfer(MADCTL);
-
-  sendDisplayCommand(ST77XX_COLMOD);  // Set color mode (12-bit)
-  SPITransfer(0x03);
-
-  sendDisplayCommand(ST7735_GMCTRP1);  // Gamma Adjustments (pos. polarity)
-  SPITransfer(0x02);
-  SPITransfer(0x1c);
-  SPITransfer(0x07);
-  SPITransfer(0x12);
-  SPITransfer(0x37);
-  SPITransfer(0x32);
-  SPITransfer(0x29);
-  SPITransfer(0x2D);
-  SPITransfer(0x29);
-  SPITransfer(0x25);
-  SPITransfer(0x2B);
-  SPITransfer(0x39);
-  SPITransfer(0x00);
-  SPITransfer(0x01);
-  SPITransfer(0x03);
-  SPITransfer(0x10);
-
-  sendDisplayCommand(ST7735_GMCTRN1);  // Gamma Adjustments (neg. polarity)
-  SPITransfer(0x03);
-  SPITransfer(0x1D);
-  SPITransfer(0x07);
-  SPITransfer(0x06);
-  SPITransfer(0x2E);
-  SPITransfer(0x2C);
-  SPITransfer(0x29);
-  SPITransfer(0x2D);
-  SPITransfer(0x2E);
-  SPITransfer(0x2E);
-  SPITransfer(0x37);
-  SPITransfer(0x3F);
-  SPITransfer(0x00);
-  SPITransfer(0x00);
-  SPITransfer(0x02);
-  SPITransfer(0x10);
-
-  // Clear entire display
-  setWriteRegion(0, 0, DISP_WIDTH, DISP_HEIGHT);
-  for (int i = 0; i < DISP_WIDTH*DISP_HEIGHT/2; i++) {
-    SPITransfer(bgColor >> 4);
-    SPITransfer(((bgColor & 0xF) << 4) | (bgColor >> 8));
-    SPITransfer(bgColor);
-  }
-
-  sendDisplayCommand(ST77XX_DISPON); //  Turn screen on
+  screen.begin();
+  delay(200);
+  screen.setRotation(3);
+  screen.fillScreen(TFT_BLACK);
   delayShort(100);
-
-  drawBorder();
+  //drawBorder();
 }
 
-void Arduboy2Core::displayDataMode()
-{
-  *portOutputRegister(PORT_DISP_DC_LED) |= MASK_DISP_DC;
-}
-
-void Arduboy2Core::displayCommandMode()
-{
-  *portOutputRegister(PORT_DISP_DC_LED) &= ~MASK_DISP_DC;
-}
-
-void Arduboy2Core::beginDisplaySPI()
-{
-  dispSPI.waitForTransfer();  // Block until any DMA transfers finish
-  dispSPI.endTransaction();  // End any previous transaction
-  dispSPI.beginTransaction(SPI_SETTINGS_DISP); // Start new transaction
-}
-
-void Arduboy2Core::SPITransfer(uint8_t data)
-{
-  dispSPI.transfer(data);
-}
 
 void Arduboy2Core::safeMode()
 {
@@ -178,19 +80,13 @@ void Arduboy2Core::safeMode()
 // Shut down the display
 void Arduboy2Core::displayOff()
 {
-  *portOutputRegister(PORT_DISP_DC_LED) &= ~MASK_DISP_LED;
-  beginDisplaySPI();
-  sendDisplayCommand(ST77XX_SLPIN);
-  delayShort(150);
+    screen.writecommand(ILI9341_DISPOFF); 
 }
 
 // Restart the display after a displayOff()
 void Arduboy2Core::displayOn()
 {
-  beginDisplaySPI();
-  sendDisplayCommand(ST77XX_SLPOUT);
-  delayShort(150);
-  *portOutputRegister(PORT_DISP_DC_LED) |= MASK_DISP_LED;
+    screen.writecommand(ILI9341_DISPON);
 }
 
 
@@ -215,8 +111,9 @@ void Arduboy2Core::setBackgroundColor(uint16_t color)
 {
   bgColor = color;
 
-  if (borderDrawn)
+  if (borderDrawn) {
     drawBorderGap();
+  }
 }
 
 uint16_t Arduboy2Core::getBorderLineColor()
@@ -228,8 +125,9 @@ void Arduboy2Core::setBorderLineColor(uint16_t color)
 {
   borderLineColor = color;
 
-  if (borderDrawn)
+  if (borderDrawn) {
     drawBorderLines();
+  }
 }
 
 uint16_t Arduboy2Core::getBorderFillColor()
@@ -241,8 +139,9 @@ void Arduboy2Core::setBorderFillColor(uint16_t color)
 {
   borderFillColor = color;
 
-  if (borderDrawn)
+  if (borderDrawn) {
     drawBorderFill();
+  }
 }
 
 void Arduboy2Core::setColorTheme(Theme theme)
@@ -253,6 +152,34 @@ void Arduboy2Core::setColorTheme(Theme theme)
   setBorderFillColor(theme.borderFillColor);
 }
 
+void Arduboy2Core::scale(const uint8_t *image, uint16_t w1, uint16_t h1, uint8_t *scaledImage, uint16_t w2, uint16_t h2) 
+{
+    uint16_t x_ratio = (uint16_t)((w1<<16)/w2) +1;
+    uint16_t  y_ratio = (uint16_t)((h1<<16)/h2) +1;
+    //SerialUSB.print("x_ratio: ");
+    //SerialUSB.println(x_ratio);
+    //SerialUSB.print("y_ratio: ");
+    //SerialUSB.println(x_ratio);
+
+    uint16_t x2, y2 ;
+
+    for (uint16_t i=0; i < h2; i++) {
+        for (uint16_t j=0; j<w2; j++) {
+            x2 = ((j * x_ratio) >> 16) ;
+            y2 = ((i * y_ratio) >> 16) ;
+
+            SerialUSB.print(x2);
+            SerialUSB.print(",");
+            SerialUSB.print(y2);
+            SerialUSB.print(",");
+            SerialUSB.print((i * w2) + j);
+            SerialUSB.print(",");
+            SerialUSB.println((y2 * w1) + x2);
+            scaledImage[(i * w2) + j] = image[(y2 * w1) + x2] ;
+        }                
+    }                
+}
+
 void Arduboy2Core::paintScreen(const uint8_t *image)
 {
   paintScreen((uint8_t *)image, false);
@@ -260,8 +187,51 @@ void Arduboy2Core::paintScreen(const uint8_t *image)
 
 void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
 {
-  beginDisplaySPI();
 
+  static uint16_t frameBuf_1[WIDTH * HEIGHT];
+  static uint16_t xPos, yPos, addr;
+  static uint8_t pixel;
+
+  for (xPos = 0; xPos < WIDTH; xPos++) {
+    for (yPos = 0; yPos < HEIGHT; yPos++) {
+      if (!(yPos % 8)) {
+        pixel = image[xPos + (yPos >> 3) * WIDTH];
+      }
+      addr = yPos * WIDTH  + xPos;
+      
+      if (pixel & 0x01) {
+        frameBuf_1[addr] = pixelColor;
+      } else {
+        frameBuf_1[addr] = bgColor;
+      }
+      
+      pixel = pixel >> 1;
+    }
+  }
+
+  static uint16_t scaledImage[S_WIDTH * S_HEIGHT] = {0};
+  uint16_t x2, y2;
+  uint16_t x_ratio = (uint16_t)((WIDTH<<16)/S_WIDTH) + 1;
+  uint16_t y_ratio = (uint16_t)((HEIGHT<<16)/S_HEIGHT) + 1;
+
+  for (uint16_t i = 0; i < S_HEIGHT; i++) {
+      for (uint16_t j = 0; j < S_WIDTH; j++) {
+          x2 = ((j * x_ratio) >> 16) ;
+          y2 = ((i * y_ratio) >> 16) ;
+          scaledImage[(i * S_WIDTH) + j] = frameBuf_1[(y2 * WIDTH) + x2] ;
+      }                
+  }                
+  
+  //screen.pushImage((DISP_WIDTH-WIDTH)/2,(DISP_HEIGHT-HEIGHT)/2, WIDTH, HEIGHT, frameBuf_1);
+  screen.pushImage((DISP_WIDTH - S_WIDTH)/2,(DISP_HEIGHT - S_HEIGHT)/2, S_WIDTH, S_HEIGHT, scaledImage);
+
+  if (clear) {
+    memset(image, 0, WIDTH*HEIGHT/8);
+  }
+}
+
+/*void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
+{
   int b = 0;
   for (int y = 0; y < HEIGHT; y++)
   {
@@ -278,51 +248,28 @@ void Arduboy2Core::paintScreen(uint8_t image[], bool clear)
       frameBuf[b++] = p0 >> 4;
       frameBuf[b++] = ((p0 & 0xF) << 4) | (p1 >> 8);
       frameBuf[b++] = p1;
+      //frameBuf[row * WIDTH + x] = p0 >> 4;
+      //frameBuf[row * WIDTH + x + 1] = ((p0 & 0xF) << 4) | (p1 >> 8);
+      //frameBuf[row * WIDTH + x + 2] = p1;
     }
   }
 
-  setWriteRegion();
-  dispSPI.transfer(frameBuf, NULL, frameBufLen, false);
+  screen.pushImage((DISP_WIDTH-HEIGHT)/2, (DISP_HEIGHT-WIDTH)/2, HEIGHT, WIDTH, frameBuf);
 
-  if (clear)
+  if (clear) {
     memset(image, 0, WIDTH*HEIGHT/8);
-}
+  }
+}*/
 
 void Arduboy2Core::blank()
 {
   drawRegion(bgColor);
 }
 
-void Arduboy2Core::sendDisplayCommand(uint8_t command)
-{
-  displayCommandMode();
-  SPITransfer(command);
-  displayDataMode();
-}
-
-static void setWriteRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
-{
-  Arduboy2Core::sendDisplayCommand(ST77XX_CASET);  //  Column addr set
-  Arduboy2Core::SPITransfer(0);
-  Arduboy2Core::SPITransfer(x);                    //  x start
-  Arduboy2Core::SPITransfer(0);
-  Arduboy2Core::SPITransfer(x + width - 1);        //  x end
-
-  Arduboy2Core::sendDisplayCommand(ST77XX_RASET);  //  Row addr set
-  Arduboy2Core::SPITransfer(0);
-  Arduboy2Core::SPITransfer(y);                    //  y start
-  Arduboy2Core::SPITransfer(0);
-  Arduboy2Core::SPITransfer(y + height - 1);       //  y end
-
-  Arduboy2Core::sendDisplayCommand(ST77XX_RAMWR);  //  Initialize write to display RAM
-}
-
 static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
-  Arduboy2Core::beginDisplaySPI();
-
   int numBytes = BYTES_FOR_REGION(width, height);
-  setWriteRegion(x, y, width, height);
+
   for (int i = 0; i < numBytes; i += 3)
   {
     frameBuf[i] = color >> 4;
@@ -330,7 +277,7 @@ static void drawRegion(uint16_t color, uint8_t x, uint8_t y, uint8_t width, uint
     frameBuf[i+2] = color;
   }
 
-  dispSPI.transfer(frameBuf, NULL, numBytes, false);
+  screen.pushImage(x, y,  width, height, frameBuf);
 }
 
 static uint8_t borderMarginX()
@@ -403,9 +350,13 @@ void Arduboy2Core::invert(bool inverse)
 // or set to normal buffer display
 void Arduboy2Core::allPixelsOn(bool on)
 {
-  beginDisplaySPI();
-  sendDisplayCommand(on ? ST77XX_DISPOFF : ST77XX_DISPON);
-  delayShort(100);
+ if (on) {
+    displayOn();
+ } else {
+    displayOff();
+ }
+ 
+ delayShort(100);
 }
 
 // flip the display vertically or set to normal
@@ -413,15 +364,15 @@ void Arduboy2Core::flipVertical(bool flipped)
 {
   if (flipped)
   {
-    MADCTL |= ST77XX_MADCTL_MX;
+    //MADCTL |= ST77XX_MADCTL_MX;
   }
   else
   {
-    MADCTL &= ~ST77XX_MADCTL_MX;
+    //MADCTL &= ~ST77XX_MADCTL_MX;
   }
-  beginDisplaySPI();
-  sendDisplayCommand(ST77XX_MADCTL);
-  SPITransfer(MADCTL);
+  //beginDisplaySPI();
+  //sendDisplayCommand(ST77XX_MADCTL);
+  //SPITransfer(MADCTL);
 }
 
 // flip the display horizontally or set to normal
@@ -429,15 +380,15 @@ void Arduboy2Core::flipHorizontal(bool flipped)
 {
   if (flipped)
   {
-    MADCTL &= ~ST77XX_MADCTL_MY;
+    //MADCTL &= ~ST77XX_MADCTL_MY;
   }
   else
   {
-    MADCTL |= ST77XX_MADCTL_MY;
+    //MADCTL |= ST77XX_MADCTL_MY;
   }
-  beginDisplaySPI();
-  sendDisplayCommand(ST77XX_MADCTL);
-  SPITransfer(MADCTL);
+  //beginDisplaySPI();
+  //sendDisplayCommand(ST77XX_MADCTL);
+  //SPITransfer(MADCTL);
 }
 
 
@@ -478,10 +429,10 @@ void Arduboy2Core::digitalWriteRGB(uint8_t color, uint8_t val)
 
 static void drawLEDs()
 {
-  Arduboy2Core::beginDisplaySPI();
+  //Arduboy2Core::beginDisplaySPI();
 
   int numBytes = BYTES_FOR_REGION(DISP_WIDTH, 4);
-  setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : DISP_HEIGHT-4, DISP_WIDTH, 4);
+  //setWriteRegion(0, (MADCTL & ST77XX_MADCTL_MX) ? 0 : DISP_HEIGHT-4, DISP_WIDTH, 4);
 
   for (int i = 0; i < numBytes; i += 3)
   {
@@ -493,7 +444,7 @@ static void drawLEDs()
     frameBuf[i + 2] = color;
   }
 
-  dispSPI.transfer(frameBuf, NULL, numBytes, false);
+  //dispSPI.transfer(frameBuf, NULL, numBytes, false);
 }
 
 
@@ -501,17 +452,20 @@ static void drawLEDs()
 
 uint8_t Arduboy2Core::buttonsState()
 {
-  uint32_t st_sel_up_rt = ~(*portInputRegister(PORT_ST_SEL_UP_RT));
-  uint32_t a_b_dn_lf = ~(*portInputRegister(PORT_A_B_DN_LF));
+  //uint32_t st_sel_up_rt = ~(*portInputRegister(PORT_ST_SEL_UP_RT));
+  //uint32_t a_b_dn_lf = ~(*portInputRegister(PORT_A_B_DN_LF));
+  uint32_t st_a_b = ~(*portInputRegister(PORT_ST_A_B));
+  uint32_t up_lf_dn_rt_ps = ~(*portInputRegister(PORT_UP_LF_DN_RT_PS));
+
   return (
-    (((a_b_dn_lf & MASK_BUTTON_A) != 0) << A_BUTTON_BIT) |
-    (((a_b_dn_lf & MASK_BUTTON_B) != 0) << B_BUTTON_BIT) |
-    (((a_b_dn_lf & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON_BIT) |
-    (((a_b_dn_lf & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON_BIT) |
-    (((st_sel_up_rt & MASK_BUTTON_UP) != 0) << UP_BUTTON_BIT) |
-    (((st_sel_up_rt & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON_BIT) |
-    (((st_sel_up_rt & MASK_BUTTON_START) != 0) << START_BUTTON_BIT) |
-    (((st_sel_up_rt & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON_BIT)
+    (((st_a_b & MASK_BUTTON_A) != 0) << A_BUTTON_BIT) |
+    (((st_a_b & MASK_BUTTON_B) != 0) << B_BUTTON_BIT) |
+    (((up_lf_dn_rt_ps & MASK_BUTTON_DOWN) != 0) << DOWN_BUTTON_BIT) |
+    (((up_lf_dn_rt_ps & MASK_BUTTON_LEFT) != 0) << LEFT_BUTTON_BIT) |
+    (((up_lf_dn_rt_ps & MASK_BUTTON_UP) != 0) << UP_BUTTON_BIT) |
+    (((up_lf_dn_rt_ps & MASK_BUTTON_RIGHT) != 0) << RIGHT_BUTTON_BIT) |
+    (((st_a_b & MASK_BUTTON_START) != 0) << START_BUTTON_BIT) |
+    (((up_lf_dn_rt_ps & MASK_BUTTON_SELECT) != 0) << SELECT_BUTTON_BIT)
   );
 }
 

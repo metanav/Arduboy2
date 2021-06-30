@@ -1,11 +1,11 @@
 /**
- * @file Arduboy2BeepDotMG.h
+ * @file Arduboy2Beep.h
  * \brief
  * Classes to generate simple square wave tones on the Arduboy speaker pins.
  */
 
-#ifndef ARDUBOY2_BEEP_DOTMG_H
-#define ARDUBOY2_BEEP_DOTMG_H
+#ifndef ARDUBOY2_BEEP_H
+#define ARDUBOY2_BEEP_H
 
 // For backwards compatibility
 #define BeepPin1 BeepChan1
@@ -65,8 +65,8 @@
  * a button is pressed.
  *
  * \code{.cpp}
- * #include <Arduboy2DotMG.h>
- * #include <Arduboy2BeepDotMG.h>
+ * #include <Arduboy2.h>
+ * #include <Arduboy2Beep.h>
  *
  * Arduboy2 arduboy;
  * BeepChan1 beep; // class instance for speaker channel 1

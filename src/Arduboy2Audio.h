@@ -1,14 +1,14 @@
 /**
- * @file Arduboy2AudioDotMG.h
+ * @file Arduboy2Audio.h
  * \brief
  * The Arduboy2Audio class for speaker and sound control.
  */
 
-#ifndef ARDUBOY2_AUDIO_DOTMG_H
-#define ARDUBOY2_AUDIO_DOTMG_H
+#ifndef ARDUBOY2_AUDIO_H
+#define ARDUBOY2_AUDIO_H
 
 #include <Arduino.h>
-#include <EEPROM.h>
+#include <FlashAsEEPROM.h>
 
 /** \brief
  * Provide speaker and sound control.
@@ -29,7 +29,7 @@
  * Example:
  *
  * \code{.cpp}
- * #include <Arduboy2DotMG.h>
+ * #include <Arduboy2.h>
  *
  * Arduboy2 arduboy;
  *
@@ -53,7 +53,7 @@
  * like so:
  *
  * \code{.cpp}
- * #include <Arduboy2DotMG.h>
+ * #include <Arduboy2.h>
  * #include <ArduboyTones.h>
  *
  * Arduboy2 arduboy;

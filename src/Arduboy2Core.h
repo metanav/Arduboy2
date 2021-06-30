@@ -1,13 +1,15 @@
 /**
- * @file Arduboy2CoreDotMG.h
+ * @file Arduboy2Core.h
  * \brief
  * The Arduboy2Core class for Arduboy hardware initilization and control.
  */
 
-#ifndef ARDUBOY2_CORE_DOTMG_H
-#define ARDUBOY2_CORE_DOTMG_H
+#ifndef ARDUBOY2_CORE_H
+#define ARDUBOY2_CORE_H
 
 #include <Arduino.h>
+#include <TFT_eSPI.h>
+
 #include "themes/themes.h"
 #include "themes/colors.h"
 
@@ -49,113 +51,46 @@
 #define RGB_ON     1
 
 // Display values
-
 #define WIDTH       128
 #define HEIGHT      64
-#define DISP_WIDTH  160
-#define DISP_HEIGHT 128
-
+#define S_WIDTH     320
+#define S_HEIGHT    160
+#define DISP_WIDTH  320
+#define DISP_HEIGHT 240
 
 // ----- Pins -----
 
-#define PORT_ST_SEL_UP_RT   (&(PORT->Group[PORTA]))
-#define PORT_A_B_DN_LF      (&(PORT->Group[PORTB]))
-#define PORT_DISP_DC_LED    (&(PORT->Group[PORTA]))
+#define PORT_ST_A_B   (&(PORT->Group[PORTC]))
+#define PORT_UP_LF_DN_RT_PS      (&(PORT->Group[PORTD]))
 
-#define MASK_DISP_DC        digitalPinToBitMask(PIN_DISP_DC)
-#define MASK_DISP_LED       digitalPinToBitMask(PIN_DISP_LED)
-#define MASK_SPI_MOSI       digitalPinToBitMask(PIN_SPI_DISP_MOSI)
-#define MASK_SPI_SCK        digitalPinToBitMask(PIN_SPI_DISP_SCK)
-
-#define PIN_BUTTON_A        20
+#define PIN_BUTTON_A        WIO_KEY_C
 #define MASK_BUTTON_A       digitalPinToBitMask(PIN_BUTTON_A)
 
-#define PIN_BUTTON_B        21
+#define PIN_BUTTON_B        WIO_KEY_B
 #define MASK_BUTTON_B       digitalPinToBitMask(PIN_BUTTON_B)
 
-#define PIN_BUTTON_UP       18
+#define PIN_BUTTON_UP       WIO_5S_UP
 #define MASK_BUTTON_UP      digitalPinToBitMask(PIN_BUTTON_UP)
 
-#define PIN_BUTTON_DOWN     4
+#define PIN_BUTTON_DOWN     WIO_5S_DOWN
 #define MASK_BUTTON_DOWN    digitalPinToBitMask(PIN_BUTTON_DOWN)
 
-#define PIN_BUTTON_LEFT     5
+#define PIN_BUTTON_LEFT     WIO_5S_LEFT
 #define MASK_BUTTON_LEFT    digitalPinToBitMask(PIN_BUTTON_LEFT)
 
-#define PIN_BUTTON_RIGHT    19
+#define PIN_BUTTON_RIGHT    WIO_5S_RIGHT
 #define MASK_BUTTON_RIGHT   digitalPinToBitMask(PIN_BUTTON_RIGHT)
 
-#define PIN_BUTTON_START    0
+#define PIN_BUTTON_START    WIO_KEY_A
 #define MASK_BUTTON_START   digitalPinToBitMask(PIN_BUTTON_START)
 
-#define PIN_BUTTON_SELECT   1
+#define PIN_BUTTON_SELECT   WIO_5S_PRESS
 #define MASK_BUTTON_SELECT  digitalPinToBitMask(PIN_BUTTON_SELECT)
 
 #define PIN_SPEAKER         PIN_DAC1
 #define DAC_CH_SPEAKER      1
 #define DAC_READY           DAC->STATUS.bit.READY1
 #define DAC_DATA_BUSY       DAC->SYNCBUSY.bit.DATA1
-
-
-// ----- For display configuration (ST7735R) -----
-
-#define ST77XX_NOP        0x00
-#define ST77XX_SWRESET    0x01
-#define ST77XX_RDDID      0x04
-#define ST77XX_RDDST      0x09
-
-#define ST77XX_SLPIN      0x10
-#define ST77XX_SLPOUT     0x11
-#define ST77XX_PTLON      0x12
-#define ST77XX_NORON      0x13
-
-#define ST77XX_INVOFF     0x20
-#define ST77XX_INVON      0x21
-#define ST77XX_DISPOFF    0x28
-#define ST77XX_DISPON     0x29
-#define ST77XX_CASET      0x2A
-#define ST77XX_RASET      0x2B
-#define ST77XX_RAMWR      0x2C
-#define ST77XX_RAMRD      0x2E
-
-#define ST77XX_PTLAR      0x30
-#define ST77XX_COLMOD     0x3A
-#define ST77XX_MADCTL     0x36
-
-#define ST77XX_MADCTL_MY  0x80
-#define ST77XX_MADCTL_MX  0x40
-#define ST77XX_MADCTL_MV  0x20
-#define ST77XX_MADCTL_ML  0x10
-#define ST77XX_MADCTL_RGB 0x00
-
-#define ST77XX_RDID1      0xDA
-#define ST77XX_RDID2      0xDB
-#define ST77XX_RDID3      0xDC
-#define ST77XX_RDID4      0xDD
-
-#define ST7735_MADCTL_BGR 0x08
-#define ST7735_MADCTL_MH  0x04
-
-#define ST7735_FRMCTR1    0xB1
-#define ST7735_FRMCTR2    0xB2
-#define ST7735_FRMCTR3    0xB3
-#define ST7735_INVCTR     0xB4
-#define ST7735_DISSET5    0xB6
-
-#define ST7735_PWCTR1     0xC0
-#define ST7735_PWCTR2     0xC1
-#define ST7735_PWCTR3     0xC2
-#define ST7735_PWCTR4     0xC3
-#define ST7735_PWCTR5     0xC4
-#define ST7735_VMCTR1     0xC5
-
-#define ST7735_PWCTR6     0xFC
-
-#define ST7735_GMCTRP1    0xE0
-#define ST7735_GMCTRN1    0xE1
-
-// --------------------
-
 
 /** \brief
  * Lower level functions generally dealing directly with the hardware.
@@ -451,6 +386,8 @@ class Arduboy2Core
      * number of pixels in the display area.
      */
     void static paintScreen(const uint8_t *image);
+
+    void static scale(const uint8_t *image, uint16_t w1, uint16_t h1, uint8_t *scaledImage, uint16_t w2, uint16_t h2); 
 
     /** \brief
      * Paints an entire image directly to the display from an array in RAM.

@@ -11,7 +11,7 @@
  version 2.1 of the License, or (at your option) any later version.
  */
 
-#include <Arduboy2DotMG.h>
+#include <Arduboy2.h>
 
 // block in EEPROM to save high scores
 #define EE_FILE 2

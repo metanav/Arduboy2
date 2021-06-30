@@ -1,16 +1,16 @@
 /**
- * @file Arduboy2DotMG.h
+ * @file Arduboy2.h
  * \brief
  * The Arduboy2Base and Arduboy2 classes and support objects and definitions.
  */
 
-#ifndef ARDUBOY2_DOTMG_H
-#define ARDUBOY2_DOTMG_H
+#ifndef ARDUBOY2_H
+#define ARDUBOY2_H
 
 #include <Arduino.h>
-#include <EEPROM.h>
-#include "Arduboy2CoreDotMG.h"
-#include "Arduboy2BeepDotMG.h"
+#include <FlashAsEEPROM.h>
+#include "Arduboy2Core.h"
+#include "Arduboy2Beep.h"
 #include "Sprites.h"
 #include "SpritesB.h"
 #include <Print.h>
@@ -65,7 +65,7 @@
 #define EEPROM_STORAGE_SPACE_START 16
 
 // eeprom settings above are neded for audio
-#include "Arduboy2AudioDotMG.h"
+#include "Arduboy2Audio.h"
 
 // If defined, it is safe to draw outside of the screen boundaries.
 // Pixels that would exceed the display limits will be ignored.
@@ -179,7 +179,7 @@ struct Point
  * Example:
  *
  * \code{.cpp}
- * #include <Arduboy2DotMG.h>
+ * #include <Arduboy2.h>
  *
  * Arduboy2 arduboy;
  *
@@ -1375,7 +1375,7 @@ class Arduboy2 : public Print, public Arduboy2Base
    *
    * \see Arduboy2::write()
    */
-  using Print::write;
+  //using Print::write;
 
   /** \brief
    * Display the boot logo sequence using printed text instead of a bitmap.

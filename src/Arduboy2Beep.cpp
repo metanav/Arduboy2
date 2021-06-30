@@ -5,8 +5,8 @@
  */
 
 #include <Arduino.h>
-#include "Arduboy2BeepDotMG.h"
-#include "Arduboy2CoreDotMG.h"
+#include "Arduboy2Beep.h"
+#include "Arduboy2Core.h"
 
 static void timer_init(Tc *TCx, unsigned int clkId, IRQn_Type irqn)
 {
